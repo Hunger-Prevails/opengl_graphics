@@ -6,31 +6,53 @@
 
 #include <iostream>
 #include <string>
+#include <fstream>
+#include <vector>
 
 using namespace std;
 
-string vertexShader = R"(
-    #version 430
-    in vec3 pos;
-    void main()
-    {
-        gl_Position = vec4(pos, 1);
-    }
-)";
+unsigned long getFileLength(ifstream& is)
+{
+    if(!is.good()) return 0;
+    
+    unsigned long pos = is.tellg();
+    is.seekg(0,ios::end);
+    unsigned long len = is.tellg();
+    is.seekg(ios::beg);
+    
+    return len;
+}
 
-string fragmentShader = R"(
-    #version 430
-    void main() 
+bool load_shader(string filename, vector<char*> &shaders)
+{
+    ifstream is;
+    is.open(filename, ios::in);  // opens as ASCII!
+    if(!is) return false;
+
+    unsigned long len = getFileLength(is);
+
+    char *str = new char[len + 1];
+
+    unsigned int i = 0;
+    while (!is.eof())
     {
-        gl_FragColor = vec4(1, 1, 1, 1); // white color
+        char ch = is.get();
+        if (int(ch) == -1) break;
+        str[i] = ch;  // get character from is.
+        i++;
     }
-)";
+    str[i] = 0;  // 0-terminate it at the correct position
+
+    shaders.push_back(str);
+
+    is.close();
+
+    return true;
+}
 
 // Compile and create shader object and returns its id
-GLuint compileShaders(string shader, GLenum type)
+GLuint compileShaders(char *shaderSource, GLenum type)
 {
-
-    const char *shaderCode = shader.c_str();
     GLuint shaderId = glCreateShader(type);
 
     // Error: Cannot create shader object
@@ -41,7 +63,7 @@ GLuint compileShaders(string shader, GLenum type)
     }
 
     // Attach source code to this object
-    glShaderSource(shaderId, 1, &shaderCode, NULL);
+    glShaderSource(shaderId, 1, &shaderSource, NULL);
     glCompileShader(shaderId); // compile the shader object
 
     GLint compileStatus;
@@ -133,8 +155,13 @@ void init()
 
     GLuint vboId = loadDataInBuffers();
 
-    GLuint vShaderId = compileShaders(vertexShader, GL_VERTEX_SHADER);
-    GLuint fShaderId = compileShaders(fragmentShader, GL_FRAGMENT_SHADER);
+    vector<char*> shaders;
+
+    if (!load_shader("../shaders/vs.glsl", shaders)) exit(0);
+    if (!load_shader("../shaders/fs.glsl", shaders)) exit(0);
+
+    GLuint vShaderId = compileShaders(shaders[0], GL_VERTEX_SHADER);
+    GLuint fShaderId = compileShaders(shaders[1], GL_FRAGMENT_SHADER);
 
     GLuint programId = linkProgram(vShaderId, fShaderId);
 
