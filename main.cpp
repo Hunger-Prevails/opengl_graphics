@@ -127,25 +127,40 @@ GLuint linkProgram(GLuint vertexShaderId, GLuint fragmentShaderId)
 }
 
 // Load data in VBO (Vertex Buffer Object) and return the vbo's id
-GLuint loadDataInBuffers()
+GLuint loadArrayBuffer()
 {
-    GLfloat vertices[] = {// triangle vertex coordinates
-                          -0.5, -0.5, 0,
-                          0.5, -0.5, 0,
-                          0, 0.5, 0};
+    GLfloat vertices[] = {-0.5, -0.5, 0, 0.5, -0.5, 0, -0.5, 0.5, 0, 0.5, 0.5, 0};
 
-    GLuint vboId;
+    GLuint array_buffer;
 
     // allocate buffer sapce and pass data to it
-    glGenBuffers(1, &vboId);
-    glBindBuffer(GL_ARRAY_BUFFER, vboId);
+    glGenBuffers(1, &array_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, array_buffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     // unbind the active buffer
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    return vboId;
+    return array_buffer;
 }
+
+GLuint loadElementBuffer()
+{
+    GLuint indices[] = {0, 1, 2, 1, 3, 2};
+
+    GLuint element_buffer;
+
+    glGenBuffers(1, &element_buffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    return element_buffer;
+}
+
+GLuint vertex_array;
+GLuint programId;
 
 // Initialize and put everything together
 void init()
@@ -153,7 +168,8 @@ void init()
     // clear the framebuffer each frame with black color
     glClearColor(0.3, 0.5f, 0, 0);
 
-    GLuint vboId = loadDataInBuffers();
+    GLuint array_buffer = loadArrayBuffer();
+    GLuint element_buffer = loadElementBuffer();
 
     vector<char*> shaders;
 
@@ -163,26 +179,27 @@ void init()
     GLuint vShaderId = compileShaders(shaders[0], GL_VERTEX_SHADER);
     GLuint fShaderId = compileShaders(shaders[1], GL_FRAGMENT_SHADER);
 
-    GLuint programId = linkProgram(vShaderId, fShaderId);
+    programId = linkProgram(vShaderId, fShaderId);
 
     // Get the 'pos' variable location inside this program
     GLuint posAttributePosition = glGetAttribLocation(programId, "pos");
 
-    GLuint vaoId;
-    glGenVertexArrays(1, &vaoId); // Generate VAO  (Vertex Array Object)
+    glGenVertexArrays(1, &vertex_array); // Generate VAO  (Vertex Array Object)
 
     // Bind it so that rest of vao operations affect this vao
-    glBindVertexArray(vaoId);
+    glBindVertexArray(vertex_array);
+    glBindBuffer(GL_ARRAY_BUFFER, array_buffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
 
-    // buffer from which 'pos' will receive its data and the format of that data
-    glBindBuffer(GL_ARRAY_BUFFER, vboId);
     glVertexAttribPointer(posAttributePosition, 3, GL_FLOAT, false, 0, 0);
 
     // Enable this attribute array linked to 'pos'
     glEnableVertexAttribArray(posAttributePosition);
 
-    // Use this program for rendering.
-    glUseProgram(programId);
+    // unbind objects
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 // Function that does the drawing
@@ -192,10 +209,12 @@ void display()
     // clear the color buffer before each drawing
     glClear(GL_COLOR_BUFFER_BIT);
 
-    // draw triangles starting from index 0 and
-    // using 3 indices
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    // use this program for rendering.
+    glUseProgram(programId);
+    // use this vertex array object for attribute arrangement
+    glBindVertexArray(vertex_array);
 
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     // swap the buffers and hence show the buffers
     // content to the screen
     glutSwapBuffers();
@@ -207,8 +226,8 @@ int main(int argc, char **argv)
 {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
-    glutInitWindowSize(500, 500);
-    glutInitWindowPosition(100, 100);
+    glutInitWindowSize(1600, 900);
+    glutInitWindowPosition(50, 50);
     glutCreateWindow("Triangle Using OpenGL");
     glewInit();
     init();
