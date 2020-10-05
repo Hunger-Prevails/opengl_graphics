@@ -11,122 +11,11 @@
 #include <chrono>
 #include <cmath>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+#include "shader_utils.h"
+
 using namespace std;
-
-unsigned long getFileLength(ifstream& is)
-{
-    if(!is.good()) return 0;
-    
-    unsigned long pos = is.tellg();
-    is.seekg(0,ios::end);
-    unsigned long len = is.tellg();
-    is.seekg(ios::beg);
-    
-    return len;
-}
-
-bool load_shader(string filename, vector<char*> &shaders)
-{
-    ifstream is;
-    is.open(filename, ios::in);  // opens as ASCII!
-    if(!is) return false;
-
-    unsigned long len = getFileLength(is);
-
-    char *str = new char[len + 1];
-
-    unsigned int i = 0;
-    while (!is.eof())
-    {
-        char ch = is.get();
-        if (int(ch) == -1) break;
-        str[i] = ch;  // get character from is.
-        i++;
-    }
-    str[i] = 0;  // 0-terminate it at the correct positions
-
-    shaders.push_back(str);
-
-    is.close();
-
-    return true;
-}
-
-// Compile and create shader object and returns its id
-GLuint compileShaders(char *shaderSource, GLenum type)
-{
-    GLuint shaderId = glCreateShader(type);
-
-    // Error: Cannot create shader object
-    if (shaderId == 0)
-    {
-        cout << "Error creating shaders!";
-        return 0;
-    }
-
-    // Attach source code to this object
-    glShaderSource(shaderId, 1, &shaderSource, NULL);
-    glCompileShader(shaderId); // compile the shader object
-
-    GLint compileStatus;
-
-    // check for compilation status
-    glGetShaderiv(shaderId, GL_COMPILE_STATUS, &compileStatus);
-
-    // If compilation fails
-    if (!compileStatus)
-    {
-        int length;
-        glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &length);
-        char *cMessage = new char[length];
-
-        // Get additional information
-        glGetShaderInfoLog(shaderId, length, &length, cMessage);
-        cout << "Cannot Compile Shader: " << cMessage;
-        delete[] cMessage;
-        glDeleteShader(shaderId);
-        return 0;
-    }
-
-    return shaderId;
-}
-
-// Creates a program containing vertex and fragment shader
-// links it and returns its ID
-GLuint linkProgram(GLuint vertexShaderId, GLuint fragmentShaderId)
-{
-    GLuint programId = glCreateProgram(); // create a program
-
-    if (programId == 0)
-    {
-        cout << "Error Creating Shader Program";
-        return 0;
-    }
-
-    // Attach both the shaders to it
-    glAttachShader(programId, vertexShaderId);
-    glAttachShader(programId, fragmentShaderId);
-
-    // Create executable of this program
-    glLinkProgram(programId);
-
-    GLint linkStatus;
-
-    // Get the link status for this program
-    glGetProgramiv(programId, GL_LINK_STATUS, &linkStatus);
-
-    if (!linkStatus)
-    { // If the linking failed
-        cout << "Error Linking program";
-        glDetachShader(programId, vertexShaderId);
-        glDetachShader(programId, fragmentShaderId);
-        glDeleteProgram(programId);
-
-        return 0;
-    }
-
-    return programId;
-}
 
 // Load data in VBO (Vertex Buffer Object) and return the vbo's id
 GLuint loadArrayBuffer(vector<float> attributes)
@@ -159,12 +48,39 @@ GLuint loadElementBuffer()
     return element_buffer;
 }
 
+GLuint load_texture(string image_file)
+{
+    GLuint texture;
+
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);   
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    int width, height;
+    auto data = stbi_load(image_file.c_str(), &width, &height, 0, 0);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    stbi_image_free(data);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    return texture;
+}
+
 GLuint vertex_array;
 GLuint programId;
 
 // Initialize and put everything together
 void init()
 {
+    GLuint texture = load_texture("../res/container.png");
+
     // clear the framebuffer each frame with black color
     glClearColor(0.2f, 0.2f, 0.2f, 0);
 
