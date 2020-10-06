@@ -11,23 +11,23 @@
 #include <chrono>
 #include <cmath>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include "shader_utils.h"
 
 using namespace std;
 
-// Load data in VBO (Vertex Buffer Object) and return the vbo's id
 GLuint loadArrayBuffer(vector<float> attributes)
 {
     GLuint array_buffer;
 
-    // allocate buffer sapce and pass data to it
     glGenBuffers(1, &array_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, array_buffer);
     glBufferData(GL_ARRAY_BUFFER, attributes.size() * sizeof(float), attributes.data(), GL_STATIC_DRAW);
-
-    // unbind the active buffer
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     return array_buffer;
@@ -80,6 +80,8 @@ GLuint texture;
 void init()
 {
     texture = load_texture("../res/container.png");
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture);
 
     glClearColor(0.2f, 0.2f, 0.2f, 0);
 
@@ -136,8 +138,6 @@ void init()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-// Function that does the drawing
-// glut calls this function whenever it needs to redraw
 void display()
 {
     glClear(GL_COLOR_BUFFER_BIT);
@@ -149,6 +149,11 @@ void display()
     int volume_uniform = glGetUniformLocation(programId, "uVolume");
     auto time_value = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
     glUniform1f(volume_uniform, sin(time_value * 3.1416 / 2000.0f) / 2.0f + 0.5f);
+
+    int sampler_uniform = glGetUniformLocation(programId, "uTexture");
+    glUniform1i(sampler_uniform, 0);
+
+    glm::vec4 vec(1.0f, 0.0f, 0.0f, 1.0f);
 
     glBindTexture(GL_TEXTURE_2D, texture);
 
@@ -162,8 +167,7 @@ void timer( int value )
     glutTimerFunc(16, timer, 0);
     glutPostRedisplay();
 }
-// main function
-// sets up window to which we'll draw
+
 int main(int argc, char **argv)
 {
     glutInit(&argc, argv);
