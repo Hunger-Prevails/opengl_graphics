@@ -84,23 +84,54 @@ void init()
     glBindTexture(GL_TEXTURE_2D, texture);
 
     glClearColor(0.2f, 0.2f, 0.2f, 0);
+    glEnable(GL_DEPTH_TEST);
 
-    float vertex_position[] = {-0.5, -0.5, 0, 0.5, -0.5, 0, -0.5, 0.5, 0, 0.5, 0.5, 0};
-    vector<float> positions;
-    positions.assign(vertex_position, vertex_position + 12);
-    GLuint position_buffer = loadArrayBuffer(positions);
+    float vertex_data[] = {
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+         0.5f,  0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
 
-    float vertex_color[] = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0};
-    vector<float> colors;
-    colors.assign(vertex_color, vertex_color + 12);
-    GLuint color_buffer = loadArrayBuffer(colors);
+        -0.5f, -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+         0.5f,  0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
 
-    float vertex_tex_coord[] = {0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0};
-    vector<float> tex_coords;
-    tex_coords.assign(vertex_tex_coord, vertex_tex_coord + 8);
-    GLuint tex_coord_buffer = loadArrayBuffer(tex_coords);
+        -0.5f,  0.5f,  0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
 
-    GLuint element_buffer = loadElementBuffer();
+         0.5f,  0.5f,  0.5f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+         0.5f,  0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
+         0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f,
+         0.5f, -0.5f,  0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+         0.5f,  0.5f,  0.5f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+
+        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
+         0.5f, -0.5f,  0.5f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+
+        -0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+    };
+    vector<float> data;
+    data.assign(vertex_data, vertex_data + 36 * 8);
+    GLuint array_buffer = loadArrayBuffer(data);
 
     vector<char*> shaders;
 
@@ -113,25 +144,21 @@ void init()
     programId = linkProgram(vShaderId, fShaderId);
 
     GLuint position_attrib = glGetAttribLocation(programId, "aPosition");
-    GLuint color_attrib = glGetAttribLocation(programId, "aColor");
     GLuint tex_coord_attrib = glGetAttribLocation(programId, "aTexCoord");
+    GLuint color_attrib = glGetAttribLocation(programId, "aColor");
 
-    glGenVertexArrays(1, &vertex_array); // Generate VAO  (Vertex Array Object)
+    glGenVertexArrays(1, &vertex_array);
 
     glBindVertexArray(vertex_array);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
 
-    glBindBuffer(GL_ARRAY_BUFFER, position_buffer);
-    glVertexAttribPointer(position_attrib, 3, GL_FLOAT, false, 0, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, array_buffer);
+    glVertexAttribPointer(position_attrib, 3, GL_FLOAT, false, 8 * sizeof(float), (void *)0);
+    glVertexAttribPointer(tex_coord_attrib, 2, GL_FLOAT, false, 8 * sizeof(float), (void *)(3 * sizeof(float)));
+    glVertexAttribPointer(color_attrib, 3, GL_FLOAT, false, 8 * sizeof(float), (void *)(5 * sizeof(float)));
+
     glEnableVertexAttribArray(position_attrib);
-
-    glBindBuffer(GL_ARRAY_BUFFER, color_buffer);
-    glVertexAttribPointer(color_attrib, 3, GL_FLOAT, false, 0, 0);
-    glEnableVertexAttribArray(color_attrib);
-
-    glBindBuffer(GL_ARRAY_BUFFER, tex_coord_buffer);
-    glVertexAttribPointer(tex_coord_attrib, 2, GL_FLOAT, false, 0, 0);
     glEnableVertexAttribArray(tex_coord_attrib);
+    glEnableVertexAttribArray(color_attrib);
 
     glBindVertexArray(0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -140,7 +167,7 @@ void init()
 
 void display()
 {
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(programId);
     
@@ -148,12 +175,12 @@ void display()
 
     int volume_uniform = glGetUniformLocation(programId, "uVolume");
     auto time_value = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
-    glUniform1f(volume_uniform, sin(time_value * 3.1416 / 2000.0f) / 2.0f + 0.5f);
+    glUniform1f(volume_uniform, sin((time_value % 100000) * 3.1416 / 2000.0) / 2.0f + 0.5f);
 
     int sampler_uniform = glGetUniformLocation(programId, "uTexture");
     glUniform1i(sampler_uniform, 0);
 
-    glm::mat4 model = glm::rotate(glm::mat4(1.0f), glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::mat4 model = glm::rotate(glm::mat4(1.0f), (float)((time_value % 100000) * 3.1416 / 2000.0), glm::vec3(1.0f, 1.0f, 0.0f));
     glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
     glm::mat4 perspect = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
@@ -165,9 +192,7 @@ void display()
     glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(perspect_uniform, 1, GL_FALSE, glm::value_ptr(perspect));
 
-    glBindTexture(GL_TEXTURE_2D, texture);
-
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
     
     glutSwapBuffers();
 }
