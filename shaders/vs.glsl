@@ -7,9 +7,13 @@ in vec2 aTexCoord;
 out vec3 vColor;
 out vec2 vTexCoord;
 
+uniform mat4 uModel;
+uniform mat4 uView;
+uniform mat4 uPerspect;
+
 void main()
 {
-    gl_Position = vec4(aPosition, 1.0);
+    gl_Position = uPerspect * uView * uModel * vec4(aPosition, 1.0);
     vColor = aColor;
     vTexCoord = aTexCoord;
 }

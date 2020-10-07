@@ -153,7 +153,17 @@ void display()
     int sampler_uniform = glGetUniformLocation(programId, "uTexture");
     glUniform1i(sampler_uniform, 0);
 
-    glm::vec4 vec(1.0f, 0.0f, 0.0f, 1.0f);
+    glm::mat4 model = glm::rotate(glm::mat4(1.0f), glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
+    glm::mat4 perspect = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+
+    int model_uniform = glGetUniformLocation(programId, "uModel");
+    int view_uniform = glGetUniformLocation(programId, "uView");
+    int perspect_uniform = glGetUniformLocation(programId, "uPerspect");
+
+    glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+    glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(perspect_uniform, 1, GL_FALSE, glm::value_ptr(perspect));
 
     glBindTexture(GL_TEXTURE_2D, texture);
 
