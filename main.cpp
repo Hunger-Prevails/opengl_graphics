@@ -77,6 +77,13 @@ GLuint vertex_array;
 GLuint programId;
 GLuint texture;
 
+glm::vec3 cam_pos;
+glm::vec3 cam_front;
+glm::vec3 cam_oben;
+
+float time_value;
+float last_value;
+
 void init()
 {
     texture = load_texture("../res/container.png");
@@ -163,10 +170,20 @@ void init()
     glBindVertexArray(0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    cam_pos = glm::vec3(0.0f, 0.0f, 3.0f);
+    cam_front = glm::vec3(0.0f, 0.0f, -1.0f);
+    cam_oben = glm::vec3(0.0f, 1.0f, 0.0f);
 }
 
 void display()
 {
+    last_value = time_value;
+
+    auto millisec = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
+
+    time_value = (millisec % 1000000) / 1000.0;
+
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(programId);
@@ -174,15 +191,14 @@ void display()
     glBindVertexArray(vertex_array);
 
     int volume_uniform = glGetUniformLocation(programId, "uVolume");
-    auto time_value = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
-    glUniform1f(volume_uniform, sin((time_value % 100000) * 3.1416 / 2000.0) / 2.0f + 0.5f);
+    glUniform1f(volume_uniform, sin(time_value * 3.1416 / 2.0) / 2.0f + 0.5f);
 
     int sampler_uniform = glGetUniformLocation(programId, "uTexture");
     glUniform1i(sampler_uniform, 0);
 
-    glm::mat4 model = glm::rotate(glm::mat4(1.0f), (float)((time_value % 100000) * 3.1416 / 2000.0), glm::vec3(1.0f, 1.0f, 0.0f));
-    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
+    glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 perspect = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+    glm::mat4 view = glm::lookAt(cam_pos, cam_pos + cam_front, cam_oben);
 
     int model_uniform = glGetUniformLocation(programId, "uModel");
     int view_uniform = glGetUniformLocation(programId, "uView");
@@ -197,10 +213,22 @@ void display()
     glutSwapBuffers();
 }
 
-void timer( int value )
+void timer(int value)
 {
     glutTimerFunc(16, timer, 0);
     glutPostRedisplay();
+}
+
+void keyboard(unsigned char key, int xmouse, int ymouse)
+{
+    float delta_value = time_value - last_value;
+
+    auto cam_links = glm::normalize(glm::cross(cam_oben, cam_front));
+
+    if(key == 'w') cam_pos += delta_value * cam_front * 2.0f;
+    if(key == 's') cam_pos -= delta_value * cam_front * 2.0f;
+    if(key == 'a') cam_pos += delta_value * cam_links * 2.0f;
+    if(key == 'd') cam_pos -= delta_value * cam_links * 2.0f;
 }
 
 int main(int argc, char **argv)
@@ -214,6 +242,7 @@ int main(int argc, char **argv)
     init();
     glutTimerFunc(16, timer, 0);
     glutDisplayFunc(display);
+    glutKeyboardFunc(keyboard);
     glutMainLoop();
     return 0;
 }
