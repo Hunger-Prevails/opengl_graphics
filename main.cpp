@@ -10,6 +10,7 @@
 #include <vector>
 #include <chrono>
 #include <cmath>
+#include <algorithm>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -84,14 +85,18 @@ glm::vec3 cam_oben;
 float time_value;
 float last_value;
 
+int last_mouse_x;
+int last_mouse_y;
+bool drags;
+
+float pitch;
+float yaw;
+
 void init()
 {
-    texture = load_texture("../res/container.png");
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture);
-
     glClearColor(0.2f, 0.2f, 0.2f, 0);
     glEnable(GL_DEPTH_TEST);
+    glutSetCursor(GLUT_CURSOR_NONE);
 
     float vertex_data[] = {
         -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
@@ -171,9 +176,18 @@ void init()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+    texture = load_texture("../res/container.png");
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
     cam_pos = glm::vec3(0.0f, 0.0f, 3.0f);
     cam_front = glm::vec3(0.0f, 0.0f, -1.0f);
     cam_oben = glm::vec3(0.0f, 1.0f, 0.0f);
+
+    drags = false;
+
+    pitch = 0.0f;
+    yaw = -90.0f;
 }
 
 void display()
@@ -198,6 +212,12 @@ void display()
 
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 perspect = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+
+    auto view_x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    auto view_y = sin(glm::radians(pitch));
+    auto view_z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    cam_front = glm::normalize(glm::vec3(view_x, view_y, view_z));
+
     glm::mat4 view = glm::lookAt(cam_pos, cam_pos + cam_front, cam_oben);
 
     int model_uniform = glGetUniformLocation(programId, "uModel");
@@ -225,17 +245,47 @@ void keyboard(unsigned char key, int xmouse, int ymouse)
 
     auto cam_links = glm::normalize(glm::cross(cam_oben, cam_front));
 
-    if(key == 'w') cam_pos += delta_value * cam_front * 2.0f;
-    if(key == 's') cam_pos -= delta_value * cam_front * 2.0f;
-    if(key == 'a') cam_pos += delta_value * cam_links * 2.0f;
-    if(key == 'd') cam_pos -= delta_value * cam_links * 2.0f;
+    if (key == 'w') cam_pos += delta_value * cam_front * 2.0f;
+    if (key == 's') cam_pos -= delta_value * cam_front * 2.0f;
+    if (key == 'a') cam_pos += delta_value * cam_links * 2.0f;
+    if (key == 'd') cam_pos -= delta_value * cam_links * 2.0f;
+}
+
+void mouse(int button, int state, int xpos, int ypos)
+{
+    if (button == GLUT_RIGHT_BUTTON and state == GLUT_DOWN) {
+        
+        last_mouse_x = xpos;
+        last_mouse_y = ypos;
+
+        drags = true;
+
+    } else if (button == GLUT_RIGHT_BUTTON and state == GLUT_UP) {
+
+        drags = false;
+    }
+}
+
+void motion(int xpos, int ypos)
+{
+    if (!drags) return;
+
+    float xoffset = xpos - last_mouse_x;
+    float yoffset = last_mouse_y - ypos;
+    last_mouse_x = xpos;
+    last_mouse_y = ypos;
+
+    pitch += yoffset * 0.1f;
+    yaw += xoffset * 0.1f;
+
+    pitch = max(min(pitch, 60.0f), -60.0f);
 }
 
 int main(int argc, char **argv)
 {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
-    glutInitWindowSize(1600, 900);
+    glutInitWindowSize(1200, 800);
     glutInitWindowPosition(50, 50);
     glutCreateWindow("Triangle Using OpenGL");
     glewInit();
@@ -243,6 +293,8 @@ int main(int argc, char **argv)
     glutTimerFunc(16, timer, 0);
     glutDisplayFunc(display);
     glutKeyboardFunc(keyboard);
+    glutMouseFunc(mouse);
+    glutMotionFunc(motion);
     glutMainLoop();
     return 0;
 }
