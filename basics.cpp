@@ -147,8 +147,8 @@ void init()
 
     vector<char*> shaders;
 
-    if (!load_shader("../shaders/vs.glsl", shaders)) exit(0);
-    if (!load_shader("../shaders/fs.glsl", shaders)) exit(0);
+    if (!load_shader("../shaders/basics.vs", shaders)) exit(0);
+    if (!load_shader("../shaders/basics.fs", shaders)) exit(0);
 
     GLuint vShaderId = compileShaders(shaders[0], GL_VERTEX_SHADER);
     GLuint fShaderId = compileShaders(shaders[1], GL_FRAGMENT_SHADER);
