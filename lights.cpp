@@ -16,9 +16,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "tex_manager.h"
 #include "shader_utils.h"
+#include "vertices.h"
 
 using namespace std;
 
@@ -34,49 +34,12 @@ GLuint loadArrayBuffer(vector<float> attributes)
     return array_buffer;
 }
 
-GLuint loadElementBuffer()
-{
-    GLuint indices[] = {0, 1, 2, 1, 3, 2};
+extern float vertex_data[];
 
-    GLuint element_buffer;
+TexManager *tex_manager;
 
-    glGenBuffers(1, &element_buffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-    return element_buffer;
-}
-
-GLuint load_texture(string image_file)
-{
-    GLuint texture;
-
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);   
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    int width, height;
-    auto data = stbi_load(image_file.c_str(), &width, &height, 0, 0);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    stbi_image_free(data);
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    return texture;
-}
-
-GLuint vertex_array;
-GLuint programId;
-GLuint texture;
+GLuint vao;
+GLuint program;
 
 glm::vec3 cam_pos;
 glm::vec3 cam_front;
@@ -98,49 +61,6 @@ void init()
     glEnable(GL_DEPTH_TEST);
     glutSetCursor(GLUT_CURSOR_NONE);
 
-    float vertex_data[] = {
-        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-         0.5f,  0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-
-        -0.5f, -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f,
-         0.5f,  0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-
-        -0.5f,  0.5f,  0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-
-         0.5f,  0.5f,  0.5f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-         0.5f,  0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-         0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-         0.5f, -0.5f,  0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
-         0.5f,  0.5f,  0.5f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-
-        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-         0.5f, -0.5f,  0.5f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-
-        -0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-    };
     vector<float> data;
     data.assign(vertex_data, vertex_data + 36 * 8);
     GLuint array_buffer = loadArrayBuffer(data);
@@ -153,15 +73,15 @@ void init()
     GLuint vShaderId = compileShaders(shaders[0], GL_VERTEX_SHADER);
     GLuint fShaderId = compileShaders(shaders[1], GL_FRAGMENT_SHADER);
 
-    programId = linkProgram(vShaderId, fShaderId);
+    program = linkProgram(vShaderId, fShaderId);
 
-    GLuint position_attrib = glGetAttribLocation(programId, "aPosition");
-    GLuint tex_coord_attrib = glGetAttribLocation(programId, "aTexCoord");
-    GLuint color_attrib = glGetAttribLocation(programId, "aColor");
+    GLuint position_attrib = glGetAttribLocation(program, "aPosition");
+    GLuint tex_coord_attrib = glGetAttribLocation(program, "aTexCoord");
+    GLuint color_attrib = glGetAttribLocation(program, "aColor");
 
-    glGenVertexArrays(1, &vertex_array);
+    glGenVertexArrays(1, &vao);
 
-    glBindVertexArray(vertex_array);
+    glBindVertexArray(vao);
 
     glBindBuffer(GL_ARRAY_BUFFER, array_buffer);
     glVertexAttribPointer(position_attrib, 3, GL_FLOAT, false, 8 * sizeof(float), (void *)0);
@@ -176,9 +96,8 @@ void init()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    texture = load_texture("../res/container.png");
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture);
+    tex_manager = new TexManager();
+    tex_manager->load_texture("../res/container.png", "uTexture");
 
     cam_pos = glm::vec3(0.0f, 0.0f, 3.0f);
     cam_front = glm::vec3(0.0f, 0.0f, -1.0f);
@@ -200,15 +119,14 @@ void display()
 
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-    glUseProgram(programId);
+    glUseProgram(program);
     
-    glBindVertexArray(vertex_array);
+    glBindVertexArray(vao);
 
-    int volume_uniform = glGetUniformLocation(programId, "uVolume");
+    int volume_uniform = glGetUniformLocation(program, "uVolume");
     glUniform1f(volume_uniform, sin(time_value * 3.1416 / 2.0) / 2.0f + 0.5f);
 
-    int sampler_uniform = glGetUniformLocation(programId, "uTexture");
-    glUniform1i(sampler_uniform, 0);
+    tex_manager->upload(program, "uTexture");
 
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 perspect = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
@@ -220,9 +138,9 @@ void display()
 
     glm::mat4 view = glm::lookAt(cam_pos, cam_pos + cam_front, cam_oben);
 
-    int model_uniform = glGetUniformLocation(programId, "uModel");
-    int view_uniform = glGetUniformLocation(programId, "uView");
-    int perspect_uniform = glGetUniformLocation(programId, "uPerspect");
+    int model_uniform = glGetUniformLocation(program, "uModel");
+    int view_uniform = glGetUniformLocation(program, "uView");
+    int perspect_uniform = glGetUniformLocation(program, "uPerspect");
 
     glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
     glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(view));
