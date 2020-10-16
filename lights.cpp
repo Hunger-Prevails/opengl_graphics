@@ -76,8 +76,8 @@ void init()
     program = linkProgram(vShaderId, fShaderId);
 
     GLuint position_attrib = glGetAttribLocation(program, "aPosition");
+    GLuint normal_attrib = glGetAttribLocation(program, "aNormal");
     GLuint tex_coord_attrib = glGetAttribLocation(program, "aTexCoord");
-    GLuint color_attrib = glGetAttribLocation(program, "aColor");
 
     glGenVertexArrays(1, &vao);
 
@@ -85,19 +85,20 @@ void init()
 
     glBindBuffer(GL_ARRAY_BUFFER, array_buffer);
     glVertexAttribPointer(position_attrib, 3, GL_FLOAT, false, 8 * sizeof(float), (void *)0);
-    glVertexAttribPointer(tex_coord_attrib, 2, GL_FLOAT, false, 8 * sizeof(float), (void *)(3 * sizeof(float)));
-    glVertexAttribPointer(color_attrib, 3, GL_FLOAT, false, 8 * sizeof(float), (void *)(5 * sizeof(float)));
+    glVertexAttribPointer(normal_attrib, 3, GL_FLOAT, false, 8 * sizeof(float), (void *)(3 * sizeof(float)));
+    glVertexAttribPointer(tex_coord_attrib, 2, GL_FLOAT, false, 8 * sizeof(float), (void *)(6 * sizeof(float)));
 
     glEnableVertexAttribArray(position_attrib);
+    glEnableVertexAttribArray(normal_attrib);
     glEnableVertexAttribArray(tex_coord_attrib);
-    glEnableVertexAttribArray(color_attrib);
 
     glBindVertexArray(0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     tex_manager = new TexManager();
-    tex_manager->load_texture("../res/container.png", "uTexture");
+    tex_manager->load_texture("../res/diffuse.png", "uDiffuse");
+    tex_manager->load_texture("../res/specular.png", "uSpecular");
 
     cam_pos = glm::vec3(0.0f, 0.0f, 3.0f);
     cam_front = glm::vec3(0.0f, 0.0f, -1.0f);
@@ -123,10 +124,8 @@ void display()
     
     glBindVertexArray(vao);
 
-    int volume_uniform = glGetUniformLocation(program, "uVolume");
-    glUniform1f(volume_uniform, sin(time_value * 3.1416 / 2.0) / 2.0f + 0.5f);
-
-    tex_manager->upload(program, "uTexture");
+    tex_manager->upload(program, "uDiffuse");
+    tex_manager->upload(program, "uSpecular");
 
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 perspect = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
@@ -138,13 +137,29 @@ void display()
 
     glm::mat4 view = glm::lookAt(cam_pos, cam_pos + cam_front, cam_oben);
 
-    int model_uniform = glGetUniformLocation(program, "uModel");
-    int view_uniform = glGetUniformLocation(program, "uView");
-    int perspect_uniform = glGetUniformLocation(program, "uPerspect");
+    auto model_uniform = glGetUniformLocation(program, "uModel");
+    auto view_uniform = glGetUniformLocation(program, "uView");
+    auto perspect_uniform = glGetUniformLocation(program, "uPerspect");
 
     glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
     glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(perspect_uniform, 1, GL_FALSE, glm::value_ptr(perspect));
+
+    auto shininess_uniform = glGetUniformLocation(program, "uShininess");
+    glUniform1f(shininess_uniform, 32.0);
+
+    auto cam_pos_uniform = glGetUniformLocation(program, "uCamPos");
+    glUniform3fv(cam_pos_uniform, 1, glm::value_ptr(cam_pos));
+
+    auto light_pos_uniform = glGetUniformLocation(program, "uLight.position");
+    auto light_ambient_uniform = glGetUniformLocation(program, "uLight.ambient");
+    auto light_diffuse_uniform = glGetUniformLocation(program, "uLight.diffuse");
+    auto light_specular_uniform = glGetUniformLocation(program, "uLight.specular");
+
+    glUniform3f(light_pos_uniform, 1.2f, 1.0f, 2.0f);
+    glUniform3f(light_ambient_uniform, 0.2f, 0.2f, 0.2f);
+    glUniform3f(light_diffuse_uniform, 0.5f, 0.5f, 0.5f);
+    glUniform3f(light_specular_uniform, 1.0f, 1.0f, 1.0f);
 
     glDrawArrays(GL_TRIANGLES, 0, 36);
     

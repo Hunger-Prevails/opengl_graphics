@@ -18,10 +18,17 @@ class TexManager
 private:
 	int count;
 public:
+	map<int, unsigned int> format;
 	map<string, int> number;
 	map<string, unsigned int> texID;
 public:
-	TexManager() { count = 0; }
+	TexManager() {
+		count = 0;
+
+		format[1] = GL_RED;
+		format[3] = GL_RGB;
+		format[4] = GL_RGBA;
+	}
 
 	int get_uniform(string name) { return number[name]; }
 
@@ -39,10 +46,12 @@ public:
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		int width, height;
-		auto data = stbi_load(filepath.c_str(), &width, &height, 0, 0);
+		int width;
+		int height;
+		int n_channels;
+		auto data = stbi_load(filepath.c_str(), &width, &height, &n_channels, 0);
 
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glTexImage2D(GL_TEXTURE_2D, 0, format[n_channels], width, height, 0, format[n_channels], GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 
 		stbi_image_free(data);
