@@ -11,6 +11,10 @@
 #include <chrono>
 #include <cmath>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 using namespace std;
 
 unsigned long getFileLength(ifstream& is)
@@ -92,38 +96,98 @@ GLuint compileShaders(char *shaderSource, GLenum type)
 }
 
 // Creates a program containing vertex and fragment shader
-// links it and returns its ID
+// links it and returns its program
 GLuint linkProgram(GLuint vertexShaderId, GLuint fragmentShaderId)
 {
-    GLuint programId = glCreateProgram(); // create a program
+    GLuint program = glCreateProgram(); // create a program
 
-    if (programId == 0)
+    if (program == 0)
     {
         cout << "Error Creating Shader Program";
         return 0;
     }
 
     // Attach both the shaders to it
-    glAttachShader(programId, vertexShaderId);
-    glAttachShader(programId, fragmentShaderId);
+    glAttachShader(program, vertexShaderId);
+    glAttachShader(program, fragmentShaderId);
 
     // Create executable of this program
-    glLinkProgram(programId);
+    glLinkProgram(program);
 
     GLint linkStatus;
 
     // Get the link status for this program
-    glGetProgramiv(programId, GL_LINK_STATUS, &linkStatus);
+    glGetProgramiv(program, GL_LINK_STATUS, &linkStatus);
 
     if (!linkStatus)
     { // If the linking failed
         cout << "Error Linking program";
-        glDetachShader(programId, vertexShaderId);
-        glDetachShader(programId, fragmentShaderId);
-        glDeleteProgram(programId);
+        glDetachShader(program, vertexShaderId);
+        glDetachShader(program, fragmentShaderId);
+        glDeleteProgram(program);
 
         return 0;
     }
 
-    return programId;
+    return program;
+}
+
+void setBool(GLuint program, const std::string &name, bool value)
+{
+    glUniform1i(glGetUniformLocation(program, name.c_str()), (int)value);
+}
+
+void setInt(GLuint program, const std::string &name, int value)
+{
+    glUniform1i(glGetUniformLocation(program, name.c_str()), value);
+}
+
+void setFloat(GLuint program, const std::string &name, float value)
+{
+    glUniform1f(glGetUniformLocation(program, name.c_str()), value);
+}
+
+void setVec2(GLuint program, const std::string &name, const glm::vec2 &value)
+{
+    glUniform2fv(glGetUniformLocation(program, name.c_str()), 1, &value[0]);
+}
+
+void setVec2(GLuint program, const std::string &name, float x, float y)
+{
+    glUniform2f(glGetUniformLocation(program, name.c_str()), x, y);
+}
+
+void setVec3(GLuint program, const std::string &name, const glm::vec3 &value)
+{
+    glUniform3fv(glGetUniformLocation(program, name.c_str()), 1, &value[0]);
+}
+
+void setVec3(GLuint program, const std::string &name, float x, float y, float z)
+{
+    glUniform3f(glGetUniformLocation(program, name.c_str()), x, y, z);
+}
+
+void setVec4(GLuint program, const std::string &name, const glm::vec4 &value)
+{
+    glUniform4fv(glGetUniformLocation(program, name.c_str()), 1, &value[0]);
+}
+
+void setVec4(GLuint program, const std::string &name, float x, float y, float z, float w)
+{
+    glUniform4f(glGetUniformLocation(program, name.c_str()), x, y, z, w);
+}
+
+void setMat2(GLuint program, const std::string &name, const glm::mat2 &mat)
+{
+    glUniformMatrix2fv(glGetUniformLocation(program, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+}
+
+void setMat3(GLuint program, const std::string &name, const glm::mat3 &mat)
+{
+    glUniformMatrix3fv(glGetUniformLocation(program, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+}
+
+void setMat4(GLuint program, const std::string &name, const glm::mat4 &mat)
+{
+    glUniformMatrix4fv(glGetUniformLocation(program, name.c_str()), 1, GL_FALSE, &mat[0][0]);
 }

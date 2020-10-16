@@ -133,33 +133,22 @@ void display()
     auto view_x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
     auto view_y = sin(glm::radians(pitch));
     auto view_z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+
     cam_front = glm::normalize(glm::vec3(view_x, view_y, view_z));
 
     glm::mat4 view = glm::lookAt(cam_pos, cam_pos + cam_front, cam_oben);
 
-    auto model_uniform = glGetUniformLocation(program, "uModel");
-    auto view_uniform = glGetUniformLocation(program, "uView");
-    auto perspect_uniform = glGetUniformLocation(program, "uPerspect");
+    setMat4(program, "uModel", model);
+    setMat4(program, "uView", view);
+    setMat4(program, "uPerspect", perspect);
+    setVec3(program, "uCamPos", cam_pos);
 
-    glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-    glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(view));
-    glUniformMatrix4fv(perspect_uniform, 1, GL_FALSE, glm::value_ptr(perspect));
+    setFloat(program, "uShininess", 32.0);
 
-    auto shininess_uniform = glGetUniformLocation(program, "uShininess");
-    glUniform1f(shininess_uniform, 32.0);
-
-    auto cam_pos_uniform = glGetUniformLocation(program, "uCamPos");
-    glUniform3fv(cam_pos_uniform, 1, glm::value_ptr(cam_pos));
-
-    auto light_pos_uniform = glGetUniformLocation(program, "uLight.position");
-    auto light_ambient_uniform = glGetUniformLocation(program, "uLight.ambient");
-    auto light_diffuse_uniform = glGetUniformLocation(program, "uLight.diffuse");
-    auto light_specular_uniform = glGetUniformLocation(program, "uLight.specular");
-
-    glUniform3f(light_pos_uniform, 1.2f, 1.0f, 2.0f);
-    glUniform3f(light_ambient_uniform, 0.2f, 0.2f, 0.2f);
-    glUniform3f(light_diffuse_uniform, 0.5f, 0.5f, 0.5f);
-    glUniform3f(light_specular_uniform, 1.0f, 1.0f, 1.0f);
+    setVec3(program, "uLight.position", glm::vec3(1.2f, 1.0f, 2.0f));
+    setVec3(program, "uLight.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
+    setVec3(program, "uLight.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
+    setVec3(program, "uLight.specular", glm::vec3(1.0f, 1.0f, 1.0f));
 
     glDrawArrays(GL_TRIANGLES, 0, 36);
     
