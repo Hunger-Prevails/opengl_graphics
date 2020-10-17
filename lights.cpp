@@ -146,9 +146,15 @@ void display()
     setFloat(program, "uShininess", 32.0);
 
     setVec3(program, "uLight.position", glm::vec3(1.2f, 1.0f, 2.0f));
+    setVec3(program, "uLight.direction", glm::vec3(-1.2f, -1.0f, -2.0f));
     setVec3(program, "uLight.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
     setVec3(program, "uLight.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
     setVec3(program, "uLight.specular", glm::vec3(1.0f, 1.0f, 1.0f));
+
+    setFloat(program, "uLight.atten_a", 0.0f);
+    setFloat(program, "uLight.atten_b", 0.0f);
+    setFloat(program, "uLight.cone_a", glm::cos(glm::radians(10.0f)));
+    setFloat(program, "uLight.cone_b", glm::cos(glm::radians(15.0f)));
 
     glDrawArrays(GL_TRIANGLES, 0, 36);
     

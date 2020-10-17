@@ -2,10 +2,17 @@
 
 struct Light {
     vec3 position;
+    vec3 direction;
 
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
+
+    float atten_a;
+    float atten_b;
+
+    float cone_a;
+    float cone_b;
 };
 
 in vec3 vPosition;
@@ -37,5 +44,11 @@ void main()
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), uShininess);
     vec3 specular = uLight.specular * spec * texture(uSpecular, vTexCoord).r;
     
-    gl_FragColor = vec4(ambient + diffuse + specular, 1.0);
+    float dist = length(vPosition - uLight.position);
+    float atten = uLight.atten_a * dist + uLight.atten_b * dist * dist;
+
+    float cone = dot(lightDir, normalize(uLight.direction));
+    float inten = clamp((cone - uLight.cone_b) / (uLight.cone_a - uLight.cone_b), 0.0, 1.0);
+
+    gl_FragColor = vec4((ambient * inten + diffuse * inten + specular) / (atten + 1.0), 1.0);
 }
