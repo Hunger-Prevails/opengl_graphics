@@ -13,3 +13,7 @@ target_link_libraries(basics opengl32 glew32 freeglut glu32 glm)
 set(SOURCE_LIGHTS lights.cpp)
 add_executable(lights ${SOURCE_LIGHTS})
 target_link_libraries(lights opengl32 glew32 freeglut glu32 glm)
+
+# set(SOURCE_MODELS models.cpp)
+# add_executable(models ${SOURCE_MODELS})
+# target_link_libraries(models opengl32 glew32 freeglut glu32 glm assimp)

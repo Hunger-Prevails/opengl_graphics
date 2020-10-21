@@ -7,6 +7,7 @@
 #include <iostream>
 #include <map>
 #include <string>
+#include <cassert>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -16,26 +17,33 @@ using namespace std;
 class TexManager
 {
 private:
-	int count;
+	int unitCount;
 public:
 	map<int, unsigned int> format;
-	map<string, int> number;
-	map<string, unsigned int> texID;
+	map<string, unsigned int> texIDs;
+	map<string, string> texNames;
 public:
 	TexManager() {
-		count = 0;
+		unitCount = 0;
 
 		format[1] = GL_RED;
 		format[3] = GL_RGB;
 		format[4] = GL_RGBA;
+
+		stbi_set_flip_vertically_on_load(true);
 	}
 
-	int get_uniform(string name) { return number[name]; }
-
-	unsigned int get_ID(string name) { return texID[name]; }
+	void clear() {
+		unitCount = 0;
+	}
 
 	void load_texture(string filepath, string name) {
 
+		if (texIDs.find(filepath) != texIDs.end()) {
+
+			assert(texNames[filepath] == name);
+			return;
+		}
 		GLuint texture;
 
 		glGenTextures(1, &texture);
@@ -56,18 +64,18 @@ public:
 
 		stbi_image_free(data);
 
-		number[name] = count ++;
-		texID[name] = texture;
+		texIDs[filepath] = texture;
+		texNames[filepath] = name;
 
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
-	void upload(GLuint program, string name) {
+	void upload(GLuint program, string filepath) {
 
-		glActiveTexture(GL_TEXTURE0 + number[name]);
-    	glBindTexture(GL_TEXTURE_2D, texID[name]);
+		glActiveTexture(GL_TEXTURE0 + unitCount);
+		glBindTexture(GL_TEXTURE_2D, texIDs[filepath]);
 
-    	int sampler_uniform = glGetUniformLocation(program, name.c_str());
-    	glUniform1i(sampler_uniform, number[name]);
+		int sampler_uniform = glGetUniformLocation(program, texNames[filepath].c_str());
+		glUniform1i(sampler_uniform, unitCount ++);
 	}
 };
