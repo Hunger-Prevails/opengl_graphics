@@ -26,5 +26,7 @@ public:
 
 	void load_texture(string filepath, string name);
 
+	void add_texture(string fake_path, unsigned int buffer, string name);
+
 	void upload(GLuint program, string filepath);
 };

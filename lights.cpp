@@ -16,6 +16,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "frame_buffer.h"
 #include "tex_manager.h"
 #include "shader_utils.h"
 #include "vertices.h"
@@ -33,13 +34,20 @@ GLuint loadArrayBuffer(vector<float> attributes)
 
     return array_buffer;
 }
+int screen_w = 1200;
+int screen_h = 800;
 
-extern float vertex_data[];
+extern float cube_vertices[];
+extern float screen_vertices[];
 
+FrameBuffer *frame_buffer;
 TexManager *tex_manager;
 
-GLuint vao;
-GLuint program;
+unsigned int cube_vao;
+unsigned int cube_program;
+
+unsigned int screen_vao;
+unsigned int screen_program;
 
 glm::vec3 cam_pos;
 glm::vec3 cam_front;
@@ -58,47 +66,77 @@ float yaw;
 void init()
 {
     glClearColor(0.2f, 0.2f, 0.2f, 0);
-    glEnable(GL_DEPTH_TEST);
     glutSetCursor(GLUT_CURSOR_NONE);
 
-    vector<float> data;
-    data.assign(vertex_data, vertex_data + 36 * 8);
-    GLuint array_buffer = loadArrayBuffer(data);
+    vector<float> cube_data;
+    cube_data.assign(cube_vertices, cube_vertices + 36 * 8);
+    auto cube_buffer = loadArrayBuffer(cube_data);
 
-    vector<char*> shaders;
+    vector<char*> cube_shaders;
 
-    if (!load_shader("../shaders/lights.vs", shaders)) exit(0);
-    if (!load_shader("../shaders/lights.fs", shaders)) exit(0);
+    if (!load_shader("../shaders/lights.vs", cube_shaders)) exit(0);
+    if (!load_shader("../shaders/lights.fs", cube_shaders)) exit(0);
 
-    GLuint vShaderId = compileShaders(shaders[0], GL_VERTEX_SHADER);
-    GLuint fShaderId = compileShaders(shaders[1], GL_FRAGMENT_SHADER);
+    auto cube_shader_v = compileShaders(cube_shaders[0], GL_VERTEX_SHADER);
+    auto cube_shader_f = compileShaders(cube_shaders[1], GL_FRAGMENT_SHADER);
 
-    program = linkProgram(vShaderId, fShaderId);
+    cube_program = linkProgram(cube_shader_v, cube_shader_f);
 
-    GLuint position_attrib = glGetAttribLocation(program, "aPosition");
-    GLuint normal_attrib = glGetAttribLocation(program, "aNormal");
-    GLuint tex_coord_attrib = glGetAttribLocation(program, "aTexCoord");
+    auto cube_a_position = glGetAttribLocation(cube_program, "aPosition");
+    auto cude_a_normal = glGetAttribLocation(cube_program, "aNormal");
+    auto cude_a_tex_coord = glGetAttribLocation(cube_program, "aTexCoord");
 
-    glGenVertexArrays(1, &vao);
+    glGenVertexArrays(1, &cube_vao);
+    glBindVertexArray(cube_vao);
 
-    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, cube_buffer);
+    glVertexAttribPointer(cube_a_position, 3, GL_FLOAT, false, 8 * sizeof(float), (void *)0);
+    glVertexAttribPointer(cude_a_normal, 3, GL_FLOAT, false, 8 * sizeof(float), (void *)(3 * sizeof(float)));
+    glVertexAttribPointer(cude_a_tex_coord, 2, GL_FLOAT, false, 8 * sizeof(float), (void *)(6 * sizeof(float)));
 
-    glBindBuffer(GL_ARRAY_BUFFER, array_buffer);
-    glVertexAttribPointer(position_attrib, 3, GL_FLOAT, false, 8 * sizeof(float), (void *)0);
-    glVertexAttribPointer(normal_attrib, 3, GL_FLOAT, false, 8 * sizeof(float), (void *)(3 * sizeof(float)));
-    glVertexAttribPointer(tex_coord_attrib, 2, GL_FLOAT, false, 8 * sizeof(float), (void *)(6 * sizeof(float)));
-
-    glEnableVertexAttribArray(position_attrib);
-    glEnableVertexAttribArray(normal_attrib);
-    glEnableVertexAttribArray(tex_coord_attrib);
+    glEnableVertexAttribArray(cube_a_position);
+    glEnableVertexAttribArray(cude_a_normal);
+    glEnableVertexAttribArray(cude_a_tex_coord);
 
     glBindVertexArray(0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    frame_buffer = new FrameBuffer(screen_w, screen_h);
 
     tex_manager = new TexManager();
     tex_manager->load_texture("../res/diffuse.png", "uDiffuse");
     tex_manager->load_texture("../res/specular.png", "uSpecular");
+    tex_manager->add_texture("screen_frame", frame_buffer->get_buffer(), "uScreen");
+
+    vector<float> screen_data;
+    screen_data.assign(screen_vertices, screen_vertices + 6 * 4);
+    auto screen_buffer = loadArrayBuffer(screen_data);
+
+    vector<char*> screen_shaders;
+
+    if (!load_shader("../shaders/screen.vs", screen_shaders)) exit(0);
+    if (!load_shader("../shaders/screen.fs", screen_shaders)) exit(0);
+
+    auto screen_shader_v = compileShaders(screen_shaders[0], GL_VERTEX_SHADER);
+    auto screen_shader_f = compileShaders(screen_shaders[1], GL_FRAGMENT_SHADER);
+
+    screen_program = linkProgram(screen_shader_v, screen_shader_f);
+
+    auto screen_a_position = glGetAttribLocation(screen_program, "aPosition");
+    auto screen_a_tex_coord = glGetAttribLocation(screen_program, "aTexCoord");
+
+    glGenVertexArrays(1, &screen_vao);
+    glBindVertexArray(screen_vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, screen_buffer);
+    glVertexAttribPointer(screen_a_position, 2, GL_FLOAT, false, 4 * sizeof(float), (void*)0);
+    glVertexAttribPointer(screen_a_tex_coord, 2, GL_FLOAT, false, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+
+    glEnableVertexAttribArray(screen_a_position);
+    glEnableVertexAttribArray(screen_a_tex_coord);
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     cam_pos = glm::vec3(0.0f, 0.0f, 3.0f);
     cam_front = glm::vec3(0.0f, 0.0f, -1.0f);
@@ -118,15 +156,17 @@ void display()
 
     time_value = (millisec % 1000000) / 1000.0;
 
-    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+    frame_buffer->bind();
 
-    glUseProgram(program);
-    
-    glBindVertexArray(vao);
+    glEnable(GL_DEPTH_TEST);
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glUseProgram(cube_program);
 
     tex_manager->clear();
-    tex_manager->upload(program, "../res/diffuse.png");
-    tex_manager->upload(program, "../res/specular.png");
+    tex_manager->upload(cube_program, "../res/diffuse.png");
+    tex_manager->upload(cube_program, "../res/specular.png");
 
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 perspect = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
@@ -139,25 +179,40 @@ void display()
 
     glm::mat4 view = glm::lookAt(cam_pos, cam_pos + cam_front, cam_oben);
 
-    setMat4(program, "uModel", model);
-    setMat4(program, "uView", view);
-    setMat4(program, "uPerspect", perspect);
-    setVec3(program, "uCamPos", cam_pos);
+    setMat4(cube_program, "uModel", model);
+    setMat4(cube_program, "uView", view);
+    setMat4(cube_program, "uPerspect", perspect);
+    setVec3(cube_program, "uCamPos", cam_pos);
 
-    setFloat(program, "uShininess", 32.0);
+    setFloat(cube_program, "uShininess", 32.0);
 
-    setVec3(program, "uLight.position", glm::vec3(1.2f, 1.0f, 2.0f));
-    setVec3(program, "uLight.direction", glm::vec3(-1.2f, -1.0f, -2.0f));
-    setVec3(program, "uLight.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
-    setVec3(program, "uLight.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
-    setVec3(program, "uLight.specular", glm::vec3(1.0f, 1.0f, 1.0f));
+    setVec3(cube_program, "uLight.position", glm::vec3(1.2f, 1.0f, 2.0f));
+    setVec3(cube_program, "uLight.direction", glm::vec3(-1.2f, -1.0f, -2.0f));
+    setVec3(cube_program, "uLight.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
+    setVec3(cube_program, "uLight.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
+    setVec3(cube_program, "uLight.specular", glm::vec3(1.0f, 1.0f, 1.0f));
 
-    setFloat(program, "uLight.atten_a", 0.0f);
-    setFloat(program, "uLight.atten_b", 0.0f);
-    setFloat(program, "uLight.cone_a", glm::cos(glm::radians(10.0f)));
-    setFloat(program, "uLight.cone_b", glm::cos(glm::radians(15.0f)));
+    setFloat(cube_program, "uLight.atten_a", 0.0f);
+    setFloat(cube_program, "uLight.atten_b", 0.0f);
+    setFloat(cube_program, "uLight.cone_a", glm::cos(glm::radians(10.0f)));
+    setFloat(cube_program, "uLight.cone_b", glm::cos(glm::radians(15.0f)));
 
+    glBindVertexArray(cube_vao);
     glDrawArrays(GL_TRIANGLES, 0, 36);
+
+    frame_buffer->unbind();
+
+    glDisable(GL_DEPTH_TEST);
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glUseProgram(screen_program);
+
+    tex_manager->clear();
+    tex_manager->upload(screen_program, "screen_frame");
+
+    glBindVertexArray(screen_vao);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
     
     glutSwapBuffers();
 }
@@ -214,7 +269,7 @@ int main(int argc, char **argv)
 {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
-    glutInitWindowSize(1200, 800);
+    glutInitWindowSize(screen_w, screen_h);
     glutInitWindowPosition(50, 50);
     glutCreateWindow("Triangle Using OpenGL");
     glewInit();

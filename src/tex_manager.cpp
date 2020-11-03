@@ -60,6 +60,17 @@ void TexManager::load_texture(string filepath, string name) {
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+void TexManager::add_texture(string fake_path, unsigned int buffer, string name) {
+
+	if (texIDs.find(fake_path) != texIDs.end()) {
+
+		assert(texNames[fake_path] == name);
+		return;
+	}
+	texIDs[fake_path] = buffer;
+	texNames[fake_path] = name;
+}
+
 void TexManager::upload(GLuint program, string filepath) {
 
 	glActiveTexture(GL_TEXTURE0 + unitCount);
