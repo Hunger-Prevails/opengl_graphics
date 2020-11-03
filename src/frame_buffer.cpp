@@ -18,6 +18,8 @@ FrameBuffer::FrameBuffer(int screen_w, int screen_h) {
 	glGenTextures(1, &color_buffer);
 	glBindTexture(GL_TEXTURE_2D, color_buffer);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screen_w, screen_h, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color_buffer, 0);
