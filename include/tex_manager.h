@@ -19,12 +19,15 @@ public:
 	map<int, unsigned int> format;
 	map<string, unsigned int> texIDs;
 	map<string, string> texNames;
+	map<string, unsigned int> texTargets;
 public:
-	TexManager();
+	TexManager(bool y_flip = false);
 
 	void clear();
 
 	void load_texture(string filepath, string name);
+
+	void load_skybox(string folder, string name);
 
 	void add_texture(string fake_path, unsigned int buffer, string name);
 

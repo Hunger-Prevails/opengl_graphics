@@ -23,5 +23,5 @@ void main()
 
 	for(int i = 0; i < 9; i++) { color += vec3(texture(uScreen, vTexCoord.xy + offsets[i])) * kernel[i]; }
 
-	gl_FragColor = vec4(color, 1.0);
+	gl_FragColor = vec4(texture(uScreen, vTexCoord).rgb, 1.0);
 }

@@ -39,6 +39,7 @@ int screen_h = 800;
 
 extern float cube_vertices[];
 extern float screen_vertices[];
+extern float skybox_vertices[];
 
 FrameBuffer *frame_buffer;
 TexManager *tex_manager;
@@ -48,6 +49,9 @@ unsigned int cube_program;
 
 unsigned int screen_vao;
 unsigned int screen_program;
+
+unsigned int skybox_vao;
+unsigned int skybox_program;
 
 glm::vec3 cam_pos;
 glm::vec3 cam_front;
@@ -106,7 +110,9 @@ void init()
     tex_manager = new TexManager();
     tex_manager->load_texture("../res/diffuse.png", "uDiffuse");
     tex_manager->load_texture("../res/specular.png", "uSpecular");
+
     tex_manager->add_texture("screen_frame", frame_buffer->get_buffer(), "uScreen");
+    tex_manager->load_skybox("../res/skybox", "uSkybox");
 
     vector<float> screen_data;
     screen_data.assign(screen_vertices, screen_vertices + 6 * 4);
@@ -134,6 +140,33 @@ void init()
 
     glEnableVertexAttribArray(screen_a_position);
     glEnableVertexAttribArray(screen_a_tex_coord);
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    vector<float> skybox_data;
+    skybox_data.assign(skybox_vertices, skybox_vertices + 36 * 3);
+    auto skybox_buffer = loadArrayBuffer(skybox_data);
+
+    vector<char*> skybox_shaders;
+
+    if (!load_shader("../shaders/skybox.vs", skybox_shaders)) exit(0);
+    if (!load_shader("../shaders/skybox.fs", skybox_shaders)) exit(0);
+
+    auto skybox_shader_v = compileShaders(skybox_shaders[0], GL_VERTEX_SHADER);
+    auto skybox_shader_f = compileShaders(skybox_shaders[1], GL_FRAGMENT_SHADER);
+
+    skybox_program = linkProgram(skybox_shader_v, skybox_shader_f);
+
+    auto skybox_a_position = glGetAttribLocation(skybox_program, "aPosition");
+
+    glGenVertexArrays(1, &skybox_vao);
+    glBindVertexArray(skybox_vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, skybox_buffer);
+    glVertexAttribPointer(skybox_a_position, 3, GL_FLOAT, false, 3 * sizeof(float), (void*)0);
+
+    glEnableVertexAttribArray(skybox_a_position);
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -200,6 +233,23 @@ void display()
     glBindVertexArray(cube_vao);
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
+    glDepthFunc(GL_LEQUAL);
+
+    glUseProgram(skybox_program);
+
+    tex_manager->clear();
+    tex_manager->upload(skybox_program, "../res/skybox");
+
+    model = glm::translate(model, cam_pos);
+    setMat4(skybox_program, "uModel", model);
+    setMat4(skybox_program, "uView", view);
+    setMat4(skybox_program, "uPerspect", perspect);
+
+    glBindVertexArray(skybox_vao);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+
+    glDepthFunc(GL_LESS);
+
     frame_buffer->unbind();
 
     glDisable(GL_DEPTH_TEST);
@@ -213,7 +263,7 @@ void display()
 
     glBindVertexArray(screen_vao);
     glDrawArrays(GL_TRIANGLES, 0, 6);
-    
+
     glutSwapBuffers();
 }
 
