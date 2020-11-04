@@ -32,7 +32,7 @@ public:
     string root;
     unsigned int program;
 
-    Model(string path, unsigned int program);
+    Model(string path, unsigned int program, bool y_flip = false);
 
     void Draw(unsigned int program);
     

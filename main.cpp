@@ -56,7 +56,7 @@ void init()
 
     program = linkProgram(vShaderId, fShaderId);
 
-    backpack = new Model("../res/backpack/backpack.obj", program);
+    backpack = new Model("../res/backpack/backpack.obj", program, true);
 
     cam_pos = glm::vec3(0.0f, 0.0f, 3.0f);
     cam_front = glm::vec3(0.0f, 0.0f, -1.0f);

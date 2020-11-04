@@ -25,6 +25,8 @@ uniform sampler2D uDiffuse;
 uniform sampler2D uSpecular;
 uniform float uShininess;
 
+uniform samplerCube uSkybox;
+
 uniform Light uLight;
 
 void main() 
@@ -50,5 +52,13 @@ void main()
     float cone = dot(lightDir, normalize(uLight.direction));
     float inten = clamp((cone - uLight.cone_b) / (uLight.cone_a - uLight.cone_b), 0.0, 1.0);
 
-    gl_FragColor = vec4((ambient * inten + diffuse * inten + specular) / (atten + 1.0), 1.0);
+    vec3 lightColor = (ambient * inten + diffuse * inten + specular) / (atten + 1.0);
+
+    vec3 envFlecDir = reflect(-viewDir, norm);
+    vec3 envFracDir = refract(-viewDir, norm, 1.0 / 1.5);
+
+    vec3 envFlecColor = texture(uSkybox, envFlecDir).rgb;
+    vec3 envFracColor = texture(uSkybox, envFracDir).rgb;
+
+    gl_FragColor = vec4(lightColor * 0.6 + envFlecColor * 0.2 + envFracColor * 0.2, 1.0);
 }

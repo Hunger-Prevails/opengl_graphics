@@ -21,7 +21,7 @@
 
 #include "model.h"
 
-Model::Model(string path, unsigned int program)
+Model::Model(string path, unsigned int program, bool y_flip)
 {
     texNames[aiTextureType_DIFFUSE] = "uDiffuse";
     texNames[aiTextureType_SPECULAR] = "uSpecular";
@@ -31,7 +31,7 @@ Model::Model(string path, unsigned int program)
     texNames[aiTextureType_NORMALS] = "uNormal";
 
     this->program = program;
-    tex_manager = new TexManager();
+    tex_manager = new TexManager(y_flip);
     loadModel(path);
 }
 

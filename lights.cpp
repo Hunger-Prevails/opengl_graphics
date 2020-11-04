@@ -200,6 +200,7 @@ void display()
     tex_manager->clear();
     tex_manager->upload(cube_program, "../res/diffuse.png");
     tex_manager->upload(cube_program, "../res/specular.png");
+    tex_manager->upload(cube_program, "../res/skybox");
 
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 perspect = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
@@ -221,8 +222,8 @@ void display()
 
     setVec3(cube_program, "uLight.position", glm::vec3(1.2f, 1.0f, 2.0f));
     setVec3(cube_program, "uLight.direction", glm::vec3(-1.2f, -1.0f, -2.0f));
-    setVec3(cube_program, "uLight.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
-    setVec3(cube_program, "uLight.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
+    setVec3(cube_program, "uLight.ambient", glm::vec3(0.4f, 0.4f, 0.4f));
+    setVec3(cube_program, "uLight.diffuse", glm::vec3(0.6f, 0.6f, 0.6f));
     setVec3(cube_program, "uLight.specular", glm::vec3(1.0f, 1.0f, 1.0f));
 
     setFloat(cube_program, "uLight.atten_a", 0.0f);
