@@ -100,6 +100,34 @@ GLuint linkProgram(GLuint vertex_shader, GLuint fragment_shader)
     return program;
 }
 
+GLuint linkProgram(GLuint vertex_shader, GLuint geometry_shader, GLuint fragment_shader)
+{
+    GLuint program = glCreateProgram();
+
+    glAttachShader(program, vertex_shader);
+    glAttachShader(program, geometry_shader);
+    glAttachShader(program, fragment_shader);
+
+    glLinkProgram(program);
+
+    GLint linkStatus;
+
+    glGetProgramiv(program, GL_LINK_STATUS, &linkStatus);
+
+    if (!linkStatus)
+    {
+        char message[1024];
+        glGetProgramInfoLog(program, 1024, NULL, message);
+        cout << "Error Link Program: " << message << endl;
+        
+        glDetachShader(program, vertex_shader);
+        glDetachShader(program, fragment_shader);
+        glDeleteProgram(program);
+        return 0;
+    }
+    return program;
+}
+
 void setBool(GLuint program, const std::string &name, bool value)
 {
     glUniform1i(glGetUniformLocation(program, name.c_str()), (int)value);

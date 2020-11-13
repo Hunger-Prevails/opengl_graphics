@@ -15,9 +15,9 @@ struct Light {
     float cone_b;
 };
 
-in vec3 vPosition;
-in vec3 vNormal;
-in vec2 vTexCoord;
+in vec3 gPosition;
+in vec3 gNormal;
+in vec2 gTexCoord;
 
 uniform vec3 uCamPos;
 
@@ -32,21 +32,21 @@ uniform Light uLight;
 void main() 
 {
     // ambient
-    vec3 ambient = uLight.ambient * texture(uDiffuse, vTexCoord).rgb;
+    vec3 ambient = uLight.ambient * texture(uDiffuse, gTexCoord).rgb;
   	
     // diffuse
-    vec3 norm = normalize(vNormal);
-    vec3 lightDir = normalize(vPosition - uLight.position);
+    vec3 norm = normalize(gNormal);
+    vec3 lightDir = normalize(gPosition - uLight.position);
     float diff = max(dot(norm, -lightDir), 0.0);
-    vec3 diffuse = uLight.diffuse * diff * texture(uDiffuse, vTexCoord).rgb;
+    vec3 diffuse = uLight.diffuse * diff * texture(uDiffuse, gTexCoord).rgb;
     
     // specular
-    vec3 viewDir = normalize(uCamPos - vPosition);
+    vec3 viewDir = normalize(uCamPos - gPosition);
     vec3 reflectDir = reflect(lightDir, norm);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), uShininess);
-    vec3 specular = uLight.specular * spec * texture(uSpecular, vTexCoord).r;
+    vec3 specular = uLight.specular * spec * texture(uSpecular, gTexCoord).r;
     
-    float dist = length(vPosition - uLight.position);
+    float dist = length(gPosition - uLight.position);
     float atten = uLight.atten_a * dist + uLight.atten_b * dist * dist;
 
     float cone = dot(lightDir, normalize(uLight.direction));

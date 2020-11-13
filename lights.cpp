@@ -79,12 +79,14 @@ void init()
     vector<char*> cube_shaders;
 
     if (!load_shader("../shaders/lights.vs", cube_shaders)) exit(0);
+    if (!load_shader("../shaders/lights.gs", cube_shaders)) exit(0);
     if (!load_shader("../shaders/lights.fs", cube_shaders)) exit(0);
 
     auto cube_shader_v = compileShaders(cube_shaders[0], GL_VERTEX_SHADER);
-    auto cube_shader_f = compileShaders(cube_shaders[1], GL_FRAGMENT_SHADER);
+    auto cube_shader_g = compileShaders(cube_shaders[1], GL_GEOMETRY_SHADER);
+    auto cube_shader_f = compileShaders(cube_shaders[2], GL_FRAGMENT_SHADER);
 
-    cube_program = linkProgram(cube_shader_v, cube_shader_f);
+    cube_program = linkProgram(cube_shader_v, cube_shader_g, cube_shader_f);
 
     auto cube_a_position = glGetAttribLocation(cube_program, "aPosition");
     auto cude_a_normal = glGetAttribLocation(cube_program, "aNormal");
@@ -189,6 +191,8 @@ void display()
 
     time_value = (millisec % 1000000) / 1000.0;
 
+    auto periodic = sin(time_value * 3.1416 / 2.0) / 2.0f + 0.5f;
+
     frame_buffer->bind();
 
     glEnable(GL_DEPTH_TEST);
@@ -219,6 +223,7 @@ void display()
     setVec3(cube_program, "uCamPos", cam_pos);
 
     setFloat(cube_program, "uShininess", 32.0);
+    setFloat(cube_program, "uTime", periodic);
 
     setVec3(cube_program, "uLight.position", glm::vec3(1.2f, 1.0f, 2.0f));
     setVec3(cube_program, "uLight.direction", glm::vec3(-1.2f, -1.0f, -2.0f));
