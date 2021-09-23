@@ -14,3 +14,6 @@ target_link_libraries(lights opengl32 glew32 freeglut glu32 glm model)
 set(SOURCE_MAIN main.cpp)
 add_executable(main ${SOURCE_MAIN})
 target_link_libraries(main opengl32 glew32 freeglut glu32 glm model)
+
+file(COPY ${CMAKE_SOURCE_DIR}/res DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY ${CMAKE_SOURCE_DIR}/shaders DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

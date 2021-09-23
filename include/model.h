@@ -20,13 +20,14 @@
 #include <cassert>
 
 #include "mesh.h"
+#include "json.hpp"
 
 using namespace std;
 
 class Model
 {
 public:
-    map<aiTextureType, string> texNames;
+    nlohmann::json texNames;
     TexManager *tex_manager;
     vector<Mesh> meshes;
     string root;

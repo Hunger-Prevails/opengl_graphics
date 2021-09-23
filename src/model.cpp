@@ -15,6 +15,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <iomanip>
 #include <map>
 #include <vector>
 #include <cassert>
@@ -23,12 +24,10 @@
 
 Model::Model(string path, unsigned int program, bool y_flip)
 {
-    texNames[aiTextureType_DIFFUSE] = "uDiffuse";
-    texNames[aiTextureType_SPECULAR] = "uSpecular";
-    texNames[aiTextureType_AMBIENT] = "uAmbient";
-    texNames[aiTextureType_EMISSIVE] = "uEmissive";
-    texNames[aiTextureType_HEIGHT] = "uHeight";
-    texNames[aiTextureType_NORMALS] = "uNormal";
+    std::ifstream fin("res/tex_names.json", std::ifstream::binary);
+
+    fin >> texNames;
+    fin.close();
 
     this->program = program;
     tex_manager = new TexManager(y_flip);
@@ -107,13 +106,13 @@ vector<string> Model::loadMat(aiMaterial *mat)
 
     for (auto it = texNames.begin(); it != texNames.end(); it ++) {
 
-        if (mat->GetTextureCount(it->first)) {
+        if (mat->GetTextureCount(it.value())) {
 
             aiString str;
-            mat->GetTexture(it->first, 0, &str);
+            mat->GetTexture(it.value(), 0, &str);
 
             auto texPath = this->root + '/' + string(str.C_Str());
-            tex_manager->load_texture(texPath, it->second);
+            tex_manager->load_texture(texPath, it.key());
 
             texPaths.push_back(texPath);
         }

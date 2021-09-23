@@ -78,9 +78,9 @@ void init()
 
     vector<char*> cube_shaders;
 
-    if (!load_shader("../shaders/lights.vs", cube_shaders)) exit(0);
-    if (!load_shader("../shaders/lights.gs", cube_shaders)) exit(0);
-    if (!load_shader("../shaders/lights.fs", cube_shaders)) exit(0);
+    if (!load_shader("shaders/lights.vs", cube_shaders)) exit(0);
+    if (!load_shader("shaders/lights.gs", cube_shaders)) exit(0);
+    if (!load_shader("shaders/lights.fs", cube_shaders)) exit(0);
 
     auto cube_shader_v = compileShaders(cube_shaders[0], GL_VERTEX_SHADER);
     auto cube_shader_g = compileShaders(cube_shaders[1], GL_GEOMETRY_SHADER);
@@ -110,11 +110,11 @@ void init()
     frame_buffer = new FrameBuffer(screen_w, screen_h);
 
     tex_manager = new TexManager();
-    tex_manager->load_texture("../res/diffuse.png", "uDiffuse");
-    tex_manager->load_texture("../res/specular.png", "uSpecular");
+    tex_manager->load_texture("res/diffuse.png", "uDiffuse");
+    tex_manager->load_texture("res/specular.png", "uSpecular");
 
     tex_manager->add_texture("screen_frame", frame_buffer->get_buffer(), "uScreen");
-    tex_manager->load_skybox("../res/skybox", "uSkybox");
+    tex_manager->load_skybox("res/skybox", "uSkybox");
 
     vector<float> screen_data;
     screen_data.assign(screen_vertices, screen_vertices + 6 * 4);
@@ -122,8 +122,8 @@ void init()
 
     vector<char*> screen_shaders;
 
-    if (!load_shader("../shaders/screen.vs", screen_shaders)) exit(0);
-    if (!load_shader("../shaders/screen.fs", screen_shaders)) exit(0);
+    if (!load_shader("shaders/screen.vs", screen_shaders)) exit(0);
+    if (!load_shader("shaders/screen.fs", screen_shaders)) exit(0);
 
     auto screen_shader_v = compileShaders(screen_shaders[0], GL_VERTEX_SHADER);
     auto screen_shader_f = compileShaders(screen_shaders[1], GL_FRAGMENT_SHADER);
@@ -152,8 +152,8 @@ void init()
 
     vector<char*> skybox_shaders;
 
-    if (!load_shader("../shaders/skybox.vs", skybox_shaders)) exit(0);
-    if (!load_shader("../shaders/skybox.fs", skybox_shaders)) exit(0);
+    if (!load_shader("shaders/skybox.vs", skybox_shaders)) exit(0);
+    if (!load_shader("shaders/skybox.fs", skybox_shaders)) exit(0);
 
     auto skybox_shader_v = compileShaders(skybox_shaders[0], GL_VERTEX_SHADER);
     auto skybox_shader_f = compileShaders(skybox_shaders[1], GL_FRAGMENT_SHADER);
@@ -202,9 +202,9 @@ void display()
     glUseProgram(cube_program);
 
     tex_manager->clear();
-    tex_manager->upload(cube_program, "../res/diffuse.png");
-    tex_manager->upload(cube_program, "../res/specular.png");
-    tex_manager->upload(cube_program, "../res/skybox");
+    tex_manager->upload(cube_program, "res/diffuse.png");
+    tex_manager->upload(cube_program, "res/specular.png");
+    tex_manager->upload(cube_program, "res/skybox");
 
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 perspect = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
@@ -244,7 +244,7 @@ void display()
     glUseProgram(skybox_program);
 
     tex_manager->clear();
-    tex_manager->upload(skybox_program, "../res/skybox");
+    tex_manager->upload(skybox_program, "res/skybox");
 
     model = glm::translate(model, cam_pos);
     setMat4(skybox_program, "uModel", model);

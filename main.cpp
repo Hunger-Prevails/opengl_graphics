@@ -48,15 +48,15 @@ void init()
 
     vector<char*> shaders;
 
-    if (!load_shader("../shaders/main.vs", shaders)) exit(0);
-    if (!load_shader("../shaders/main.fs", shaders)) exit(0);
+    if (!load_shader("shaders/main.vs", shaders)) exit(0);
+    if (!load_shader("shaders/main.fs", shaders)) exit(0);
 
     GLuint vShaderId = compileShaders(shaders[0], GL_VERTEX_SHADER);
     GLuint fShaderId = compileShaders(shaders[1], GL_FRAGMENT_SHADER);
 
     program = linkProgram(vShaderId, fShaderId);
 
-    backpack = new Model("../res/backpack/backpack.obj", program, true);
+    backpack = new Model("res/backpack/backpack.obj", program, true);
 
     cam_pos = glm::vec3(0.0f, 0.0f, 3.0f);
     cam_front = glm::vec3(0.0f, 0.0f, -1.0f);

@@ -91,7 +91,7 @@ GLuint linkProgram(GLuint vertex_shader, GLuint fragment_shader)
         char message[1024];
         glGetProgramInfoLog(program, 1024, NULL, message);
         cout << "Error Link Program: " << message << endl;
-        
+
         glDetachShader(program, vertex_shader);
         glDetachShader(program, fragment_shader);
         glDeleteProgram(program);
