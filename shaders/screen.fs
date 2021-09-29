@@ -1,13 +1,35 @@
 #version 460 core
 
-in vec2 vTexCoord;
+uniform sampler2DMS uScreen;
 
-uniform sampler2D uScreen;
+const float offset = 1.0;
 
-const float offset = 1.0 / 1000.0;
 
-void main()
-{
+vec4 average(ivec2 coord) {
+
+	vec4 color_a = texelFetch(uScreen, coord, 0);
+	vec4 color_b = texelFetch(uScreen, coord, 1);
+	vec4 color_c = texelFetch(uScreen, coord, 2);
+	vec4 color_d = texelFetch(uScreen, coord, 3);
+
+	return (color_a + color_b + color_c + color_d) / 4.0;
+}
+
+
+vec4 bilinear(vec2 coord) {
+
+	vec2 weight = fract(coord);
+
+	vec4 left = mix(average(ivec2(floor(coord.x), floor(coord.y))), average(ivec2(floor(coord.x), ceil(coord.y))), weight.y);
+
+	vec4 right = mix(average(ivec2(ceil(coord.x), floor(coord.y))), average(ivec2(ceil(coord.x), ceil(coord.y))), weight.y);
+
+	return mix(left, right, weight.x);
+}
+
+
+void main() {
+
 	vec2 offsets[9] = vec2[](
 		vec2(-offset,  offset), vec2(0.0f,  offset), vec2(offset,  offset),
 		vec2(-offset,    0.0f), vec2(0.0f,    0.0f), vec2(offset,    0.0f),
@@ -21,7 +43,7 @@ void main()
 	);
 	vec3 color = vec3(0.0);
 
-	for(int i = 0; i < 9; i++) { color += vec3(texture(uScreen, vTexCoord.xy + offsets[i])) * kernel[i]; }
+	for(int i = 0; i < 9; i++) { color += bilinear(gl_FragCoord.xy + offsets[i]).xyz * kernel[i]; }
 
-	gl_FragColor = vec4(texture(uScreen, vTexCoord).rgb, 1.0);
+	gl_FragColor = vec4(color, 1.0);
 }

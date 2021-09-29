@@ -116,7 +116,7 @@ void TexManager::add_texture(string fake_path, unsigned int buffer, string name)
 	}
 	texIDs[fake_path] = buffer;
 	texNames[fake_path] = name;
-	texTargets[fake_path] = GL_TEXTURE_2D;
+	texTargets[fake_path] = GL_TEXTURE_2D_MULTISAMPLE;
 }
 
 void TexManager::upload(unsigned int program, string filepath) {

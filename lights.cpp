@@ -117,7 +117,7 @@ void init()
     tex_manager->load_skybox("res/skybox", "uSkybox");
 
     vector<float> screen_data;
-    screen_data.assign(screen_vertices, screen_vertices + 6 * 4);
+    screen_data.assign(screen_vertices, screen_vertices + 12);
     auto screen_buffer = loadArrayBuffer(screen_data);
 
     vector<char*> screen_shaders;
@@ -131,23 +131,20 @@ void init()
     screen_program = linkProgram(screen_shader_v, screen_shader_f);
 
     auto screen_a_position = glGetAttribLocation(screen_program, "aPosition");
-    auto screen_a_tex_coord = glGetAttribLocation(screen_program, "aTexCoord");
 
     glGenVertexArrays(1, &screen_vao);
     glBindVertexArray(screen_vao);
 
     glBindBuffer(GL_ARRAY_BUFFER, screen_buffer);
-    glVertexAttribPointer(screen_a_position, 2, GL_FLOAT, false, 4 * sizeof(float), (void*)0);
-    glVertexAttribPointer(screen_a_tex_coord, 2, GL_FLOAT, false, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    glVertexAttribPointer(screen_a_position, 2, GL_FLOAT, false, 2 * sizeof(float), (void*)0);
 
     glEnableVertexAttribArray(screen_a_position);
-    glEnableVertexAttribArray(screen_a_tex_coord);
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     vector<float> skybox_data;
-    skybox_data.assign(skybox_vertices, skybox_vertices + 36 * 3);
+    skybox_data.assign(skybox_vertices, skybox_vertices + 108);
     auto skybox_buffer = loadArrayBuffer(skybox_data);
 
     vector<char*> skybox_shaders;
@@ -222,7 +219,7 @@ void display()
     setMat4(cube_program, "uPerspect", perspect);
     setVec3(cube_program, "uCamPos", cam_pos);
 
-    setFloat(cube_program, "uShininess", 32.0);
+    setFloat(cube_program, "uShininess", 64.0);
     setFloat(cube_program, "uTime", periodic);
 
     setVec3(cube_program, "uLight.position", glm::vec3(1.2f, 1.0f, 2.0f));
@@ -260,7 +257,7 @@ void display()
 
     glDisable(GL_DEPTH_TEST);
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT);
 
     glUseProgram(screen_program);
 

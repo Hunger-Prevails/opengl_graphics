@@ -42,8 +42,8 @@ void main()
     
     // specular
     vec3 viewDir = normalize(uCamPos - gPosition);
-    vec3 reflectDir = reflect(lightDir, norm);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), uShininess);
+    vec3 halfDir = normalize(viewDir - lightDir);
+    float spec = pow(max(dot(halfDir, norm), 0.0), uShininess);
     vec3 specular = uLight.specular * spec * texture(uSpecular, gTexCoord).r;
     
     float dist = length(gPosition - uLight.position);
