@@ -17,7 +17,6 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "model.h"
-#include "shader_utils.h"
 #include "vertices.h"
 
 using namespace std;
@@ -36,8 +35,6 @@ bool drags;
 float pitch;
 float yaw;
 
-unsigned int program;
-
 Model *backpack;
 
 void init()
@@ -46,17 +43,14 @@ void init()
     glEnable(GL_DEPTH_TEST);
     glutSetCursor(GLUT_CURSOR_NONE);
 
-    vector<char*> shaders;
+    Shader *shader = new Shader();
 
-    if (!load_shader("shaders/main.vs", shaders)) exit(0);
-    if (!load_shader("shaders/main.fs", shaders)) exit(0);
+    shader->load_shader("shaders/main.vs", GL_VERTEX_SHADER);
+    shader->load_shader("shaders/main.fs", GL_FRAGMENT_SHADER);
 
-    GLuint vShaderId = compileShaders(shaders[0], GL_VERTEX_SHADER);
-    GLuint fShaderId = compileShaders(shaders[1], GL_FRAGMENT_SHADER);
+    shader->link();
 
-    program = linkProgram(vShaderId, fShaderId);
-
-    backpack = new Model("res/backpack/backpack.obj", program, true);
+    backpack = new Model("res/backpack/backpack.obj", shader, true);
 
     cam_pos = glm::vec3(0.0f, 0.0f, 3.0f);
     cam_front = glm::vec3(0.0f, 0.0f, -1.0f);
@@ -78,7 +72,7 @@ void display()
 
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-    glUseProgram(program);
+    backpack->get_shader()->use();
 
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 perspect = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
@@ -91,23 +85,23 @@ void display()
 
     glm::mat4 view = glm::lookAt(cam_pos, cam_pos + cam_front, cam_oben);
 
-    setMat4(program, "uModel", model);
-    setMat4(program, "uView", view);
-    setMat4(program, "uPerspect", perspect);
-    setVec3(program, "uCamPos", cam_pos);
+    backpack->get_shader()->setMat4("uModel", model);
+    backpack->get_shader()->setMat4("uView", view);
+    backpack->get_shader()->setMat4("uPerspect", perspect);
+    backpack->get_shader()->setVec3("uCamPos", cam_pos);
 
-    setVec3(program, "uLight.position", glm::vec3(1.2f, 1.0f, 2.0f));
-    setVec3(program, "uLight.direction", glm::vec3(-1.2f, -1.0f, -2.0f));
-    setVec3(program, "uLight.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
-    setVec3(program, "uLight.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
-    setVec3(program, "uLight.specular", glm::vec3(1.0f, 1.0f, 1.0f));
+    backpack->get_shader()->setVec3("uLight.position", glm::vec3(1.2f, 1.0f, 2.0f));
+    backpack->get_shader()->setVec3("uLight.direction", glm::vec3(-1.2f, -1.0f, -2.0f));
+    backpack->get_shader()->setVec3("uLight.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
+    backpack->get_shader()->setVec3("uLight.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
+    backpack->get_shader()->setVec3("uLight.specular", glm::vec3(1.0f, 1.0f, 1.0f));
 
-    setFloat(program, "uLight.atten_a", 0.0f);
-    setFloat(program, "uLight.atten_b", 0.0f);
-    setFloat(program, "uLight.cone_a", glm::cos(glm::radians(10.0f)));
-    setFloat(program, "uLight.cone_b", glm::cos(glm::radians(15.0f)));
+    backpack->get_shader()->setFloat("uLight.atten_a", 0.0f);
+    backpack->get_shader()->setFloat("uLight.atten_b", 0.0f);
+    backpack->get_shader()->setFloat("uLight.cone_a", glm::cos(glm::radians(10.0f)));
+    backpack->get_shader()->setFloat("uLight.cone_b", glm::cos(glm::radians(15.0f)));
 
-    backpack->Draw(program);
+    backpack->render();
     
     glutSwapBuffers();
 }

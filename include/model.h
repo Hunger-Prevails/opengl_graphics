@@ -26,23 +26,28 @@ using namespace std;
 
 class Model
 {
-public:
-    nlohmann::json texNames;
+    Shader *shader;
+
     TexManager *tex_manager;
-    vector<Mesh> meshes;
+
+    nlohmann::json texNames;
+
     string root;
-    unsigned int program;
 
-    Model(string path, unsigned int program, bool y_flip = false);
+    vector<Mesh> meshes;
 
-    void Draw(unsigned int program);
-    
-private:
-    void loadModel(string path);
+    void load_model(string path);
 
-    void processNode(aiNode *node, const aiScene *scene);
+    void process_node(aiNode *node, const aiScene *scene);
 
-    Mesh processMesh(aiMesh *mesh, const aiScene *scene);
+    Mesh process_mesh(aiMesh *mesh, const aiScene *scene);
 
-    vector<string> loadMat(aiMaterial *mat);
+    vector<string> load_material(aiMaterial *mat);
+
+public:
+    Model(string path, Shader *shader, bool y_flip = false);
+
+    void render();
+
+    Shader *get_shader();
 };

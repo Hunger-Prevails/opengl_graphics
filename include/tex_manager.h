@@ -9,6 +9,8 @@
 #include <string>
 #include <cassert>
 
+#include "shader.h"
+
 using namespace std;
 
 class TexManager
@@ -31,5 +33,5 @@ public:
 
 	void add_texture(string fake_path, unsigned int buffer, string name);
 
-	void upload(GLuint program, string filepath);
+	void upload(Shader *shader, string filepath);
 };

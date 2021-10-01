@@ -39,7 +39,7 @@ private:
 public:
     Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<string> texPaths);
 
-    void Draw(unsigned int program, TexManager *tex_manager);
+    void render(Shader *shader, TexManager *tex_manager);
 
-    void setupMesh(unsigned int program);
+    void setup_mesh(Shader *shader);
 };

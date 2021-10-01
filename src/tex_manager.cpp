@@ -119,7 +119,7 @@ void TexManager::add_texture(string fake_path, unsigned int buffer, string name)
 	texTargets[fake_path] = GL_TEXTURE_2D_MULTISAMPLE;
 }
 
-void TexManager::upload(unsigned int program, string filepath) {
+void TexManager::upload(Shader *shader, string filepath) {
 
 	if (texIDs.find(filepath) == texIDs.end()) {
 
@@ -129,6 +129,5 @@ void TexManager::upload(unsigned int program, string filepath) {
 	glActiveTexture(GL_TEXTURE0 + unitCount);
 	glBindTexture(texTargets[filepath], texIDs[filepath]);
 
-	int sampler_uniform = glGetUniformLocation(program, texNames[filepath].c_str());
-	glUniform1i(sampler_uniform, unitCount ++);
+	glUniform1i(shader->get_uniform_location(texNames[filepath]), unitCount ++);
 }

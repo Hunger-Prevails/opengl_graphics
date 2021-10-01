@@ -22,24 +22,31 @@
 
 #include "model.h"
 
-Model::Model(string path, unsigned int program, bool y_flip)
+Model::Model(string path, Shader *shader, bool y_flip)
 {
     std::ifstream fin("res/tex_names.json", std::ifstream::binary);
 
     fin >> texNames;
     fin.close();
 
-    this->program = program;
+    this->shader = shader;
+
     tex_manager = new TexManager(y_flip);
-    loadModel(path);
+
+    load_model(path);
 }
 
-void Model::Draw(unsigned int program)
+Shader* Model::get_shader()
 {
-    for(auto &mesh:meshes) mesh.Draw(program, tex_manager);
+    return this->shader;
 }
 
-void Model::loadModel(string path)
+void Model::render()
+{
+    for(auto &mesh:meshes) mesh.render(this->shader, tex_manager);
+}
+
+void Model::load_model(string path)
 {
     Assimp::Importer importer;
     auto *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
@@ -51,19 +58,19 @@ void Model::loadModel(string path)
     }
     this->root = path.substr(0, path.find_last_of('/'));
 
-    processNode(scene->mRootNode, scene);
+    process_node(scene->mRootNode, scene);
 }
 
-void Model::processNode(aiNode *node, const aiScene *scene)
+void Model::process_node(aiNode *node, const aiScene *scene)
 {
-    for (unsigned int i = 0; i < node->mNumMeshes; i ++) meshes.push_back(processMesh(scene->mMeshes[node->mMeshes[i]], scene));
+    for (unsigned int i = 0; i < node->mNumMeshes; i ++) meshes.push_back(process_mesh(scene->mMeshes[node->mMeshes[i]], scene));
 
-    for (auto &mesh:meshes) mesh.setupMesh(this->program);
+    for (auto &mesh:meshes) mesh.setup_mesh(this->shader);
 
-    for (unsigned int i = 0; i < node->mNumChildren; i ++) processNode(node->mChildren[i], scene);
+    for (unsigned int i = 0; i < node->mNumChildren; i ++) process_node(node->mChildren[i], scene);
 }
 
-Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene)
+Mesh Model::process_mesh(aiMesh *mesh, const aiScene *scene)
 {
     vector<Vertex> vertices;
 
@@ -97,10 +104,10 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene)
     }
     auto* material = scene->mMaterials[mesh->mMaterialIndex];
 
-    return Mesh(vertices, indices, loadMat(material));
+    return Mesh(vertices, indices, load_material(material));
 }
 
-vector<string> Model::loadMat(aiMaterial *mat)
+vector<string> Model::load_material(aiMaterial *mat)
 {
     vector<string> texPaths;
 
