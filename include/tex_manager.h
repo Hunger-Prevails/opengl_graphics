@@ -9,29 +9,27 @@
 #include <string>
 #include <cassert>
 
-#include "shader.h"
-
-using namespace std;
+class Shader;
 
 class TexManager
 {
 private:
 	int unitCount;
 public:
-	map<int, unsigned int> format;
-	map<string, unsigned int> texIDs;
-	map<string, string> texNames;
-	map<string, unsigned int> texTargets;
+	std::map<int, unsigned int> format;
+	std::map<std::string, unsigned int> texIDs;
+	std::map<std::string, std::string> texNames;
+	std::map<std::string, unsigned int> texTargets;
 public:
 	TexManager(bool y_flip = false);
 
 	void clear();
 
-	void load_texture(string filepath, string name);
+	void load_texture(std::string filepath, std::string name);
 
-	void load_skybox(string folder, string name);
+	void load_skybox(std::string folder, std::string name);
 
-	void add_texture(string fake_path, unsigned int buffer, string name);
+	void add_texture(std::string fake_path, unsigned int buffer, std::string name);
 
-	void upload(Shader *shader, string filepath);
+	void upload(Shader *shader, std::string filepath);
 };

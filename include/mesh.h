@@ -10,9 +10,8 @@
 #include <string>
 #include <vector>
 
-#include "tex_manager.h"
-
-using namespace std;
+class Shader;
+class TexManager;
 
 struct Vertex {
 
@@ -27,17 +26,17 @@ struct Vertex {
 class Mesh {
 
 public:
-    vector<Vertex> vertices;
-    vector<unsigned int> indices;
-    vector<string> texPaths;
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
+    std::vector<std::string> texPaths;
 
 private:
-    unsigned int VAO;
-    unsigned int VBO;
-    unsigned int EBO;
+    unsigned int vao;
+    unsigned int vbo;
+    unsigned int ebo;
 
 public:
-    Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<string> texPaths);
+    Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<std::string> texPaths);
 
     void render(Shader *shader, TexManager *tex_manager);
 

@@ -17,14 +17,15 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "frame_buffer.h"
+#include "shader.h"
 #include "tex_manager.h"
-#include "vertices.h"
+#include "data.h"
 
 using namespace std;
 
-GLuint loadArrayBuffer(vector<float> attributes)
+unsigned int loadArrayBuffer(vector<float> attributes)
 {
-    GLuint array_buffer;
+    unsigned int array_buffer;
 
     glGenBuffers(1, &array_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, array_buffer);
@@ -36,20 +37,15 @@ GLuint loadArrayBuffer(vector<float> attributes)
 int screen_w = 1200;
 int screen_h = 800;
 
-extern float cube_vertices[];
-extern float screen_vertices[];
-extern float skybox_vertices[];
-
 FrameBuffer *frame_buffer;
 TexManager *tex_manager;
 
 unsigned int cube_vao;
-Shader *cube_shader;
-
 unsigned int screen_vao;
-Shader *screen_shader;
-
 unsigned int skybox_vao;
+
+Shader *cube_shader;
+Shader *screen_shader;
 Shader *skybox_shader;
 
 glm::vec3 cam_pos;
@@ -71,8 +67,17 @@ void init()
     glClearColor(0.2f, 0.2f, 0.2f, 0);
     glutSetCursor(GLUT_CURSOR_NONE);
 
+    frame_buffer = new FrameBuffer(screen_w, screen_h);
+
+    tex_manager = new TexManager();
+    tex_manager->load_texture("res/diffuse.png", "uDiffuse");
+    tex_manager->load_texture("res/specular.png", "uSpecular");
+
+    tex_manager->add_texture("screen_frame", frame_buffer->get_buffer(), "uScreen");
+    tex_manager->load_skybox("res/skybox", "uSkybox");
+
     vector<float> cube_data;
-    cube_data.assign(cube_vertices, cube_vertices + 36 * 8);
+    cube_data.assign(cube_vertices, cube_vertices + 288);
     auto cube_buffer = loadArrayBuffer(cube_data);
 
     cube_shader = new Shader();
@@ -101,15 +106,6 @@ void init()
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    frame_buffer = new FrameBuffer(screen_w, screen_h);
-
-    tex_manager = new TexManager();
-    tex_manager->load_texture("res/diffuse.png", "uDiffuse");
-    tex_manager->load_texture("res/specular.png", "uSpecular");
-
-    tex_manager->add_texture("screen_frame", frame_buffer->get_buffer(), "uScreen");
-    tex_manager->load_skybox("res/skybox", "uSkybox");
 
     vector<float> screen_data;
     screen_data.assign(screen_vertices, screen_vertices + 12);

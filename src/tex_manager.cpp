@@ -10,8 +10,11 @@
 #include <cassert>
 
 #include "tex_manager.h"
+#include "shader.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+
+using namespace std;
 
 TexManager::TexManager(bool y_flip) {
 	unitCount = 0;

@@ -16,28 +16,26 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-using namespace std;
-
 class Shader
 {
 	unsigned int program;
 
-	vector<unsigned int> shaders;
+	std::vector<unsigned int> shaders;
 
-	char *load_shader(string filepath);
+	char *load_shader(std::string filepath);
 
 	unsigned int compile_shader(char *segment, GLenum type);
 
 public:
-	void load_shader(string filepath, GLenum type);
+	void load_shader(std::string filepath, GLenum type);
 
 	void link();
 
 	void use();
 
-	int get_attr_location(string attr_name);
+	int get_attr_location(std::string attr_name);
 
-	int get_uniform_location(string uniform_name);
+	int get_uniform_location(std::string uniform_name);
 
 	void setBool(const std::string &name, bool value);
 

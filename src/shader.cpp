@@ -11,6 +11,8 @@
 
 #include "shader.h"
 
+using namespace std;
+
 void Shader::load_shader(string filepath, GLenum type) {
 
 	auto segment = load_shader(filepath);

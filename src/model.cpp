@@ -21,6 +21,11 @@
 #include <cassert>
 
 #include "model.h"
+#include "mesh.h"
+#include "shader.h"
+#include "tex_manager.h"
+
+using namespace std;
 
 Model::Model(string path, Shader *shader, bool y_flip)
 {

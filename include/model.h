@@ -19,10 +19,11 @@
 #include <vector>
 #include <cassert>
 
-#include "mesh.h"
 #include "json.hpp"
 
-using namespace std;
+class Mesh;
+class Shader;
+class TexManager;
 
 class Model
 {
@@ -32,20 +33,20 @@ class Model
 
     nlohmann::json texNames;
 
-    string root;
+    std::string root;
 
-    vector<Mesh> meshes;
+    std::vector<Mesh> meshes;
 
-    void load_model(string path);
+    void load_model(std::string path);
 
     void process_node(aiNode *node, const aiScene *scene);
 
     Mesh process_mesh(aiMesh *mesh, const aiScene *scene);
 
-    vector<string> load_material(aiMaterial *mat);
+    std::vector<std::string> load_material(aiMaterial *mat);
 
 public:
-    Model(string path, Shader *shader, bool y_flip = false);
+    Model(std::string path, Shader *shader, bool y_flip = false);
 
     void render();
 
