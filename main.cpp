@@ -45,7 +45,7 @@ void init()
     glEnable(GL_DEPTH_TEST);
     glutSetCursor(GLUT_CURSOR_NONE);
 
-    Shader *shader = new Shader();
+    auto shader = new Shader();
 
     shader->load_shader("shaders/main.vs", GL_VERTEX_SHADER);
     shader->load_shader("shaders/main.fs", GL_FRAGMENT_SHADER);
@@ -74,8 +74,6 @@ void display()
 
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-    backpack->get_shader()->use();
-
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 perspect = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
@@ -86,6 +84,8 @@ void display()
     cam_front = glm::normalize(glm::vec3(view_x, view_y, view_z));
 
     glm::mat4 view = glm::lookAt(cam_pos, cam_pos + cam_front, cam_oben);
+
+    backpack->get_shader()->use();
 
     backpack->get_shader()->setMat4("uModel", model);
     backpack->get_shader()->setMat4("uView", view);

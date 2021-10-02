@@ -8,6 +8,7 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <utility>
 #include <chrono>
 #include <cmath>
 #include <algorithm>
@@ -16,37 +17,23 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "frame_buffer.h"
+#include "data.h"
 #include "shader.h"
 #include "tex_manager.h"
-#include "data.h"
+#include "frame_buffer.h"
+#include "attr_array.h"
 
 using namespace std;
 
-unsigned int loadArrayBuffer(vector<float> attributes)
-{
-    unsigned int array_buffer;
-
-    glGenBuffers(1, &array_buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, array_buffer);
-    glBufferData(GL_ARRAY_BUFFER, attributes.size() * sizeof(float), attributes.data(), GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    return array_buffer;
-}
 int screen_w = 1200;
 int screen_h = 800;
 
 FrameBuffer *frame_buffer;
 TexManager *tex_manager;
 
-unsigned int cube_vao;
-unsigned int screen_vao;
-unsigned int skybox_vao;
-
-Shader *cube_shader;
-Shader *screen_shader;
-Shader *skybox_shader;
+AttrArray *cube_attr;
+AttrArray *screen_attr;
+AttrArray *skybox_attr;
 
 glm::vec3 cam_pos;
 glm::vec3 cam_front;
@@ -67,20 +54,26 @@ void init()
     glClearColor(0.2f, 0.2f, 0.2f, 0);
     glutSetCursor(GLUT_CURSOR_NONE);
 
-    frame_buffer = new FrameBuffer(screen_w, screen_h);
-
     tex_manager = new TexManager();
+
     tex_manager->load_texture("res/diffuse.png", "uDiffuse");
     tex_manager->load_texture("res/specular.png", "uSpecular");
+    tex_manager->load_skybox("res/skybox", "uSkybox");
+
+    frame_buffer = new FrameBuffer(screen_w, screen_h);
 
     tex_manager->add_texture("screen_frame", frame_buffer->get_buffer(), "uScreen");
-    tex_manager->load_skybox("res/skybox", "uSkybox");
 
     vector<float> cube_data;
     cube_data.assign(cube_vertices, cube_vertices + 288);
-    auto cube_buffer = loadArrayBuffer(cube_data);
 
-    cube_shader = new Shader();
+    vector<pair<string, size_t> > cube_attr_sizes;
+
+    cube_attr_sizes.push_back(make_pair("aPos", 3));
+    cube_attr_sizes.push_back(make_pair("aNormal", 3));
+    cube_attr_sizes.push_back(make_pair("aTexCoord", 2));
+
+    auto cube_shader = new Shader();
 
     cube_shader->load_shader("shaders/lights.vs", GL_VERTEX_SHADER);
     cube_shader->load_shader("shaders/lights.gs", GL_GEOMETRY_SHADER);
@@ -88,72 +81,44 @@ void init()
 
     cube_shader->link();
 
-    auto cube_a_position = cube_shader->get_attr_location("aPosition");
-    auto cude_a_normal = cube_shader->get_attr_location("aNormal");
-    auto cude_a_tex_coord = cube_shader->get_attr_location("aTexCoord");
-
-    glGenVertexArrays(1, &cube_vao);
-    glBindVertexArray(cube_vao);
-
-    glBindBuffer(GL_ARRAY_BUFFER, cube_buffer);
-    glVertexAttribPointer(cube_a_position, 3, GL_FLOAT, false, 8 * sizeof(float), (void *)0);
-    glVertexAttribPointer(cude_a_normal, 3, GL_FLOAT, false, 8 * sizeof(float), (void *)(3 * sizeof(float)));
-    glVertexAttribPointer(cude_a_tex_coord, 2, GL_FLOAT, false, 8 * sizeof(float), (void *)(6 * sizeof(float)));
-
-    glEnableVertexAttribArray(cube_a_position);
-    glEnableVertexAttribArray(cude_a_normal);
-    glEnableVertexAttribArray(cude_a_tex_coord);
-
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    vector<float> screen_data;
-    screen_data.assign(screen_vertices, screen_vertices + 12);
-    auto screen_buffer = loadArrayBuffer(screen_data);
-
-    screen_shader = new Shader();
-
-    screen_shader->load_shader("shaders/screen.vs", GL_VERTEX_SHADER);
-    screen_shader->load_shader("shaders/screen.fs", GL_FRAGMENT_SHADER);
-
-    screen_shader->link();
-
-    auto screen_a_position = screen_shader->get_attr_location("aPosition");
-
-    glGenVertexArrays(1, &screen_vao);
-    glBindVertexArray(screen_vao);
-
-    glBindBuffer(GL_ARRAY_BUFFER, screen_buffer);
-    glVertexAttribPointer(screen_a_position, 2, GL_FLOAT, false, 2 * sizeof(float), (void*)0);
-
-    glEnableVertexAttribArray(screen_a_position);
-
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    cube_attr = new AttrArray(cube_data, cube_attr_sizes, cube_shader);
+    cube_attr->add_tex_path("res/diffuse.png");
+    cube_attr->add_tex_path("res/specular.png");
+    cube_attr->add_tex_path("res/skybox");
 
     vector<float> skybox_data;
     skybox_data.assign(skybox_vertices, skybox_vertices + 108);
-    auto skybox_buffer = loadArrayBuffer(skybox_data);
 
-    skybox_shader = new Shader();
+    vector<pair<string, size_t> > skybox_attr_sizes;
+
+    skybox_attr_sizes.push_back(make_pair("aPos", 3));
+
+    auto skybox_shader = new Shader();
 
     skybox_shader->load_shader("shaders/skybox.vs", GL_VERTEX_SHADER);
     skybox_shader->load_shader("shaders/skybox.fs", GL_FRAGMENT_SHADER);
 
     skybox_shader->link();
 
-    auto skybox_a_position = skybox_shader->get_attr_location("aPosition");
+    skybox_attr = new AttrArray(skybox_data, skybox_attr_sizes, skybox_shader);
+    skybox_attr->add_tex_path("res/skybox");
 
-    glGenVertexArrays(1, &skybox_vao);
-    glBindVertexArray(skybox_vao);
+    vector<float> screen_data;
+    screen_data.assign(screen_vertices, screen_vertices + 12);
 
-    glBindBuffer(GL_ARRAY_BUFFER, skybox_buffer);
-    glVertexAttribPointer(skybox_a_position, 3, GL_FLOAT, false, 3 * sizeof(float), (void*)0);
+    vector<pair<string, size_t> > screen_attr_sizes;
 
-    glEnableVertexAttribArray(skybox_a_position);
+    screen_attr_sizes.push_back(make_pair("aPos", 2));
 
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    auto screen_shader = new Shader();
+
+    screen_shader->load_shader("shaders/screen.vs", GL_VERTEX_SHADER);
+    screen_shader->load_shader("shaders/screen.fs", GL_FRAGMENT_SHADER);
+
+    screen_shader->link();
+
+    screen_attr = new AttrArray(screen_data, screen_attr_sizes, screen_shader);
+    screen_attr->add_tex_path("screen_frame");
 
     cam_pos = glm::vec3(0.0f, 0.0f, 3.0f);
     cam_front = glm::vec3(0.0f, 0.0f, -1.0f);
@@ -181,13 +146,6 @@ void display()
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    cube_shader->use();
-
-    tex_manager->clear();
-    tex_manager->upload(cube_shader, "res/diffuse.png");
-    tex_manager->upload(cube_shader, "res/specular.png");
-    tex_manager->upload(cube_shader, "res/skybox");
-
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 perspect = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
@@ -199,43 +157,40 @@ void display()
 
     glm::mat4 view = glm::lookAt(cam_pos, cam_pos + cam_front, cam_oben);
 
-    cube_shader->setMat4("uModel", model);
-    cube_shader->setMat4("uView", view);
-    cube_shader->setMat4("uPerspect", perspect);
-    cube_shader->setVec3("uCamPos", cam_pos);
+    cube_attr->get_shader()->use();
 
-    cube_shader->setFloat("uShininess", 64.0);
-    cube_shader->setFloat("uTime", periodic);
+    cube_attr->get_shader()->setMat4("uModel", model);
+    cube_attr->get_shader()->setMat4("uView", view);
+    cube_attr->get_shader()->setMat4("uPerspect", perspect);
+    cube_attr->get_shader()->setVec3("uCamPos", cam_pos);
 
-    cube_shader->setVec3("uLight.position", glm::vec3(1.2f, 1.0f, 2.0f));
-    cube_shader->setVec3("uLight.direction", glm::vec3(-1.2f, -1.0f, -2.0f));
-    cube_shader->setVec3("uLight.ambient", glm::vec3(0.4f, 0.4f, 0.4f));
-    cube_shader->setVec3("uLight.diffuse", glm::vec3(0.6f, 0.6f, 0.6f));
-    cube_shader->setVec3("uLight.specular", glm::vec3(1.0f, 1.0f, 1.0f));
+    cube_attr->get_shader()->setFloat("uShininess", 64.0);
+    cube_attr->get_shader()->setFloat("uTime", periodic);
 
-    cube_shader->setFloat("uLight.atten_a", 0.0f);
-    cube_shader->setFloat("uLight.atten_b", 0.0f);
-    cube_shader->setFloat("uLight.cone_a", glm::cos(glm::radians(10.0f)));
-    cube_shader->setFloat("uLight.cone_b", glm::cos(glm::radians(15.0f)));
+    cube_attr->get_shader()->setVec3("uLight.position", glm::vec3(1.2f, 1.0f, 2.0f));
+    cube_attr->get_shader()->setVec3("uLight.direction", glm::vec3(-1.2f, -1.0f, -2.0f));
+    cube_attr->get_shader()->setVec3("uLight.ambient", glm::vec3(0.4f, 0.4f, 0.4f));
+    cube_attr->get_shader()->setVec3("uLight.diffuse", glm::vec3(0.6f, 0.6f, 0.6f));
+    cube_attr->get_shader()->setVec3("uLight.specular", glm::vec3(1.0f, 1.0f, 1.0f));
 
-    glBindVertexArray(cube_vao);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    cube_attr->get_shader()->setFloat("uLight.atten_a", 0.0f);
+    cube_attr->get_shader()->setFloat("uLight.atten_b", 0.0f);
+    cube_attr->get_shader()->setFloat("uLight.cone_a", glm::cos(glm::radians(10.0f)));
+    cube_attr->get_shader()->setFloat("uLight.cone_b", glm::cos(glm::radians(15.0f)));
+
+    cube_attr->render(tex_manager);
 
     glDepthFunc(GL_LEQUAL);
 
-    skybox_shader->use();
-
-    tex_manager->clear();
-    tex_manager->upload(skybox_shader, "res/skybox");
-
     model = glm::translate(model, cam_pos);
 
-    skybox_shader->setMat4("uModel", model);
-    skybox_shader->setMat4("uView", view);
-    skybox_shader->setMat4("uPerspect", perspect);
+    skybox_attr->get_shader()->use();
 
-    glBindVertexArray(skybox_vao);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    skybox_attr->get_shader()->setMat4("uModel", model);
+    skybox_attr->get_shader()->setMat4("uView", view);
+    skybox_attr->get_shader()->setMat4("uPerspect", perspect);
+
+    skybox_attr->render(tex_manager);
 
     glDepthFunc(GL_LESS);
 
@@ -245,13 +200,8 @@ void display()
 
     glClear(GL_COLOR_BUFFER_BIT);
 
-    screen_shader->use();
-
-    tex_manager->clear();
-    tex_manager->upload(screen_shader, "screen_frame");
-
-    glBindVertexArray(screen_vao);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    screen_attr->get_shader()->use();
+    screen_attr->render(tex_manager);
 
     glutSwapBuffers();
 }
