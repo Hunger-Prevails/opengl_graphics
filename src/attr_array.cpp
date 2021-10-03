@@ -48,6 +48,8 @@ AttrArray::AttrArray(vector<float> attributes, vector<pair<string, size_t> > siz
     }
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+
+    this->instances = 1;
 }
 
 Shader* AttrArray::get_shader()
@@ -57,15 +59,39 @@ Shader* AttrArray::get_shader()
 
 void AttrArray::add_tex_path(string path)
 {
-	tex_paths.push_back(path);
+    tex_paths.push_back(path);
 }
 
 void AttrArray::render(TexManager *tex_manager)
 {
-	tex_manager->clear();
+    tex_manager->clear();
     for (auto &path:tex_paths) tex_manager->upload(this->shader, path);
 
     glBindVertexArray(this->vao);
-    glDrawArrays(GL_TRIANGLES, 0, this->n_vertices);
+    glDrawArraysInstanced(GL_TRIANGLES, 0, this->n_vertices, this->instances);
+    glBindVertexArray(0);
+}
+
+void AttrArray::set_inst_mat4(vector<glm::mat4> attributes, string name)
+{
+    this->instances = attributes.size();
+
+    unsigned int inst_vbo;
+    glGenBuffers(1, &inst_vbo);
+
+    glBindVertexArray(this->vao);
+    glBindBuffer(GL_ARRAY_BUFFER, inst_vbo);
+    glBufferData(GL_ARRAY_BUFFER, attributes.size() * sizeof(glm::mat4), attributes.data(), GL_STATIC_DRAW);
+
+    auto attr_loc = this->shader->get_attr_location(name);
+
+    for (size_t i = 0; i < 4; i ++) {
+
+        glEnableVertexAttribArray(attr_loc + i);
+
+        glVertexAttribPointer(attr_loc + i, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4), (void*)(i * sizeof(glm::vec4)));
+
+        glVertexAttribDivisor(attr_loc + i, 1);
+    }
     glBindVertexArray(0);
 }

@@ -86,6 +86,20 @@ void init()
     cube_attr->add_tex_path("res/specular.png");
     cube_attr->add_tex_path("res/skybox");
 
+    auto model_a = glm::mat4(1.0f);
+    auto model_b = glm::translate(glm::mat4(1.0f), glm::vec3(-1.2f, -1.2f, -2.0f));
+    model_b = glm::scale(model_b, glm::vec3(0.8f));
+    auto model_c = glm::translate(glm::mat4(1.0f), glm::vec3(-2.4f, -1.8f, -4.0f));
+    model_c = glm::scale(model_c, glm::vec3(1.6f));
+
+    vector<glm::mat4> models;
+
+    models.push_back(model_a);
+    models.push_back(model_b);
+    models.push_back(model_c);
+
+    cube_attr->set_inst_mat4(models, "iModel");
+
     vector<float> skybox_data;
     skybox_data.assign(skybox_vertices, skybox_vertices + 108);
 
@@ -146,8 +160,7 @@ void display()
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glm::mat4 model = glm::mat4(1.0f);
-    glm::mat4 perspect = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+    auto perspect = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
     auto view_x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
     auto view_y = sin(glm::radians(pitch));
@@ -155,11 +168,10 @@ void display()
 
     cam_front = glm::normalize(glm::vec3(view_x, view_y, view_z));
 
-    glm::mat4 view = glm::lookAt(cam_pos, cam_pos + cam_front, cam_oben);
+    auto view = glm::lookAt(cam_pos, cam_pos + cam_front, cam_oben);
 
     cube_attr->get_shader()->use();
 
-    cube_attr->get_shader()->setMat4("uModel", model);
     cube_attr->get_shader()->setMat4("uView", view);
     cube_attr->get_shader()->setMat4("uPerspect", perspect);
     cube_attr->get_shader()->setVec3("uCamPos", cam_pos);
@@ -182,7 +194,7 @@ void display()
 
     glDepthFunc(GL_LEQUAL);
 
-    model = glm::translate(model, cam_pos);
+    auto model = glm::translate(glm::mat4(1.0f), cam_pos);
 
     skybox_attr->get_shader()->use();
 

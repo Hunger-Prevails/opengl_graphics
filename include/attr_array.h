@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <map>
 #include <string>
 #include <vector>
 #include <utility>
@@ -19,6 +20,7 @@ class AttrArray {
     unsigned int vao;
     unsigned int vbo;
 
+    size_t instances;
     size_t n_vertices;
 
     Shader *shader;
@@ -34,5 +36,5 @@ public:
 
     void render(TexManager *tex_manager);
 
-    void setup_instance_array(std::vector<float> instances, std::vector<std::pair<std::string, size_t> > sizes);
+    void set_inst_mat4(std::vector<glm::mat4> attributes, std::string name);
 };

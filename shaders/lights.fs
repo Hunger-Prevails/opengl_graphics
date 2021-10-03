@@ -60,5 +60,5 @@ void main()
     vec3 envFlecColor = texture(uSkybox, envFlecDir).rgb;
     vec3 envFracColor = texture(uSkybox, envFracDir).rgb;
 
-    gl_FragColor = vec4(lightColor * 0.6 + envFlecColor * 0.2 + envFracColor * 0.2, 1.0);
+    gl_FragColor = vec4(lightColor * 0.8 + envFlecColor * 0.1 + envFracColor * 0.1, 1.0);
 }

@@ -2,7 +2,7 @@
 
 uniform sampler2DMS uScreen;
 
-const float offset = 1.0;
+const float offset = 1.0 / 10.0;
 
 
 vec4 average(ivec2 coord) {
