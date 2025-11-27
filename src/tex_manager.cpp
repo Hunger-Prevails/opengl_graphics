@@ -122,7 +122,7 @@ void TexManager::add_texture(string fake_path, unsigned int buffer, string name)
 	texTargets[fake_path] = GL_TEXTURE_2D_MULTISAMPLE;
 }
 
-void TexManager::upload(Shader *shader, string filepath) {
+void TexManager::upload(shared_ptr<Shader> shader, string filepath) {
 
 	if (texIDs.find(filepath) == texIDs.end()) {
 

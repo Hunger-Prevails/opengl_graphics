@@ -9,6 +9,7 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 #include "mesh.h"
 #include "shader.h"
@@ -23,7 +24,7 @@ Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<string>
     this->texPaths = texPaths;
 }
 
-void Mesh::render(Shader *shader, TexManager *tex_manager)
+void Mesh::render(shared_ptr<Shader> shader, shared_ptr<TexManager> tex_manager)
 {
     tex_manager->clear();
     for (auto &path:texPaths) tex_manager->upload(shader, path);
@@ -33,7 +34,7 @@ void Mesh::render(Shader *shader, TexManager *tex_manager)
     glBindVertexArray(0);
 }
 
-void Mesh::setup_mesh(Shader *shader)
+void Mesh::setup_mesh(shared_ptr<Shader> shader)
 {
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);

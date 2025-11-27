@@ -11,6 +11,7 @@
 #include <utility>
 #include <chrono>
 #include <cmath>
+#include <memory>
 #include <algorithm>
 
 #include <glm/glm.hpp>
@@ -28,12 +29,12 @@ using namespace std;
 int screen_w = 1200;
 int screen_h = 800;
 
-FrameBuffer *frame_buffer;
-TexManager *tex_manager;
+shared_ptr<FrameBuffer> frame_buffer;
+shared_ptr<TexManager> tex_manager;
 
-AttrArray *cube_attr;
-AttrArray *screen_attr;
-AttrArray *skybox_attr;
+shared_ptr<AttrArray> cube_attr;
+shared_ptr<AttrArray> screen_attr;
+shared_ptr<AttrArray> skybox_attr;
 
 glm::vec3 cam_pos;
 glm::vec3 cam_front;
@@ -54,13 +55,13 @@ void init()
     glClearColor(0.2f, 0.2f, 0.2f, 0);
     glutSetCursor(GLUT_CURSOR_NONE);
 
-    tex_manager = new TexManager();
+    tex_manager = make_shared<TexManager>();
 
     tex_manager->load_texture("res/diffuse.png", "uDiffuse");
     tex_manager->load_texture("res/specular.png", "uSpecular");
     tex_manager->load_skybox("res/skybox", "uSkybox");
 
-    frame_buffer = new FrameBuffer(screen_w, screen_h);
+    frame_buffer = make_shared<FrameBuffer>(screen_w, screen_h);
 
     tex_manager->add_texture("screen_frame", frame_buffer->get_buffer(), "uScreen");
 
@@ -73,7 +74,7 @@ void init()
     cube_attr_sizes.push_back(make_pair("aNormal", 3));
     cube_attr_sizes.push_back(make_pair("aTexCoord", 2));
 
-    auto cube_shader = new Shader();
+    auto cube_shader = make_shared<Shader>();
 
     cube_shader->load_shader("shaders/lights.vs", GL_VERTEX_SHADER);
     cube_shader->load_shader("shaders/lights.gs", GL_GEOMETRY_SHADER);
@@ -81,7 +82,7 @@ void init()
 
     cube_shader->link();
 
-    cube_attr = new AttrArray(cube_data, cube_attr_sizes, cube_shader);
+    cube_attr = make_shared<AttrArray>(cube_data, cube_attr_sizes, move(cube_shader));
     cube_attr->add_tex_path("res/diffuse.png");
     cube_attr->add_tex_path("res/specular.png");
     cube_attr->add_tex_path("res/skybox");
@@ -107,14 +108,14 @@ void init()
 
     skybox_attr_sizes.push_back(make_pair("aPos", 3));
 
-    auto skybox_shader = new Shader();
+    auto skybox_shader = make_shared<Shader>();
 
     skybox_shader->load_shader("shaders/skybox.vs", GL_VERTEX_SHADER);
     skybox_shader->load_shader("shaders/skybox.fs", GL_FRAGMENT_SHADER);
 
     skybox_shader->link();
 
-    skybox_attr = new AttrArray(skybox_data, skybox_attr_sizes, skybox_shader);
+    skybox_attr = make_shared<AttrArray>(skybox_data, skybox_attr_sizes, move(skybox_shader));
     skybox_attr->add_tex_path("res/skybox");
 
     vector<float> screen_data;
@@ -124,14 +125,14 @@ void init()
 
     screen_attr_sizes.push_back(make_pair("aPos", 2));
 
-    auto screen_shader = new Shader();
+    auto screen_shader = make_shared<Shader>();
 
     screen_shader->load_shader("shaders/screen.vs", GL_VERTEX_SHADER);
     screen_shader->load_shader("shaders/screen.fs", GL_FRAGMENT_SHADER);
 
     screen_shader->link();
 
-    screen_attr = new AttrArray(screen_data, screen_attr_sizes, screen_shader);
+    screen_attr = make_shared<AttrArray>(screen_data, screen_attr_sizes, move(screen_shader));
     screen_attr->add_tex_path("screen_frame");
 
     cam_pos = glm::vec3(0.0f, 0.0f, 3.0f);

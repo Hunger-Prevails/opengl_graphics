@@ -7,6 +7,7 @@
 #include <iostream>
 #include <map>
 #include <string>
+#include <memory>
 #include <cassert>
 
 class Shader;
@@ -31,5 +32,5 @@ public:
 
 	void add_texture(std::string fake_path, unsigned int buffer, std::string name);
 
-	void upload(Shader *shader, std::string filepath);
+	void upload(std::shared_ptr<Shader> shader, std::string filepath);
 };

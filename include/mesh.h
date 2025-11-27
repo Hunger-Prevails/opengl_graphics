@@ -38,7 +38,7 @@ private:
 public:
     Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<std::string> texPaths);
 
-    void render(Shader *shader, TexManager *tex_manager);
+    void render(std::shared_ptr<Shader> shader, std::shared_ptr<TexManager> tex_manager);
 
-    void setup_mesh(Shader *shader);
+    void setup_mesh(std::shared_ptr<Shader> shader);
 };

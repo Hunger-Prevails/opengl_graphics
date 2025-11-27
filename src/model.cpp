@@ -18,6 +18,7 @@
 #include <iomanip>
 #include <map>
 #include <vector>
+#include <memory>
 #include <cassert>
 
 #include "model.h"
@@ -27,7 +28,7 @@
 
 using namespace std;
 
-Model::Model(string path, Shader *shader, bool y_flip)
+Model::Model(string path, shared_ptr<Shader> shader, bool y_flip)
 {
     std::ifstream fin("res/tex_names.json", std::ifstream::binary);
 
@@ -35,20 +36,19 @@ Model::Model(string path, Shader *shader, bool y_flip)
     fin.close();
 
     this->shader = shader;
-
-    tex_manager = new TexManager(y_flip);
+    this->tex_manager = make_shared<TexManager>(y_flip);
 
     load_model(path);
 }
 
-Shader* Model::get_shader()
+shared_ptr<Shader> Model::get_shader()
 {
     return this->shader;
 }
 
 void Model::render()
 {
-    for(auto &mesh:meshes) mesh.render(this->shader, tex_manager);
+    for(auto &mesh:meshes) mesh.render(this->shader, this->tex_manager);
 }
 
 void Model::load_model(string path)

@@ -11,6 +11,7 @@
 #include <chrono>
 #include <cmath>
 #include <algorithm>
+#include <memory>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -37,7 +38,7 @@ bool drags;
 float pitch;
 float yaw;
 
-Model *backpack;
+shared_ptr<Model> backpack;
 
 void init()
 {
@@ -45,14 +46,14 @@ void init()
     glEnable(GL_DEPTH_TEST);
     glutSetCursor(GLUT_CURSOR_NONE);
 
-    auto shader = new Shader();
+    auto shader = make_shared<Shader>();
 
     shader->load_shader("shaders/main.vs", GL_VERTEX_SHADER);
     shader->load_shader("shaders/main.fs", GL_FRAGMENT_SHADER);
 
     shader->link();
 
-    backpack = new Model("res/backpack/backpack.obj", shader, true);
+    backpack = make_shared<Model>("res/backpack/backpack.obj", move(shader), true);
 
     cam_pos = glm::vec3(0.0f, 0.0f, 3.0f);
     cam_front = glm::vec3(0.0f, 0.0f, -1.0f);

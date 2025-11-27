@@ -16,6 +16,7 @@
 #include <sstream>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <vector>
 #include <cassert>
 
@@ -27,9 +28,9 @@ class TexManager;
 
 class Model
 {
-    Shader *shader;
+    std::shared_ptr<Shader> shader;
 
-    TexManager *tex_manager;
+    std::shared_ptr<TexManager> tex_manager;
 
     nlohmann::json texNames;
 
@@ -46,9 +47,9 @@ class Model
     std::vector<std::string> load_material(aiMaterial *mat);
 
 public:
-    Model(std::string path, Shader *shader, bool y_flip = false);
+    Model(std::string path, std::shared_ptr<Shader> shader, bool y_flip = false);
 
     void render();
 
-    Shader *get_shader();
+    std::shared_ptr<Shader> get_shader();
 };

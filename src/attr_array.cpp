@@ -17,7 +17,7 @@
 
 using namespace std;
 
-AttrArray::AttrArray(vector<float> attributes, vector<pair<string, size_t> > sizes, Shader *shader)
+AttrArray::AttrArray(vector<float> attributes, vector<pair<string, size_t> > sizes, shared_ptr<Shader> shader)
 {
     this->shader = shader;
 
@@ -52,7 +52,7 @@ AttrArray::AttrArray(vector<float> attributes, vector<pair<string, size_t> > siz
     this->instances = 1;
 }
 
-Shader* AttrArray::get_shader()
+shared_ptr<Shader> AttrArray::get_shader()
 {
     return this->shader;
 }
@@ -62,7 +62,7 @@ void AttrArray::add_tex_path(string path)
     tex_paths.push_back(path);
 }
 
-void AttrArray::render(TexManager *tex_manager)
+void AttrArray::render(shared_ptr<TexManager> tex_manager)
 {
     tex_manager->clear();
     for (auto &path:tex_paths) tex_manager->upload(this->shader, path);
