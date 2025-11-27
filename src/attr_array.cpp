@@ -17,10 +17,8 @@
 
 using namespace std;
 
-AttrArray::AttrArray(vector<float> attributes, vector<pair<string, size_t> > sizes, shared_ptr<Shader> shader)
+AttrArray::AttrArray(vector<float> attributes, vector<pair<string, size_t> > sizes, shared_ptr<Shader> shader): shader(move(shader))
 {
-    this->shader = shader;
-
     size_t vertex_size = 0;
 
     for (auto it = sizes.begin(); it != sizes.end(); it ++) vertex_size += it->second;
@@ -38,7 +36,7 @@ AttrArray::AttrArray(vector<float> attributes, vector<pair<string, size_t> > siz
 
     for (auto it = sizes.begin(); it != sizes.end(); it ++) {
 
-        auto attr_loc = shader->get_attr_location(it->first);
+        auto attr_loc = this->shader->get_attr_location(it->first);
 
         glVertexAttribPointer(attr_loc, it->second, GL_FLOAT, false, vertex_size * sizeof(float), (void *)(offset * sizeof(float)));
 

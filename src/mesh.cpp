@@ -17,12 +17,7 @@
 
 using namespace std;
 
-Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<string> texPaths)
-{
-    this->vertices = vertices;
-    this->indices = indices;
-    this->texPaths = texPaths;
-}
+Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<string> texPaths): vertices(move(vertices)), indices(move(indices)), texPaths(move(texPaths)) {}
 
 void Mesh::render(shared_ptr<Shader> shader, shared_ptr<TexManager> tex_manager)
 {

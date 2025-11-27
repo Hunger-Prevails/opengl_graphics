@@ -28,15 +28,12 @@
 
 using namespace std;
 
-Model::Model(string path, shared_ptr<Shader> shader, bool y_flip)
+Model::Model(string path, shared_ptr<Shader> shader, bool y_flip): shader(move(shader)), tex_manager(make_shared<TexManager>(y_flip))
 {
     std::ifstream fin("res/tex_names.json", std::ifstream::binary);
 
     fin >> texNames;
     fin.close();
-
-    this->shader = shader;
-    this->tex_manager = make_shared<TexManager>(y_flip);
 
     load_model(path);
 }
