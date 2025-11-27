@@ -73,7 +73,7 @@ void display()
 
     time_value = (millisec % 1000000) / 1000.0;
 
-    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 perspect = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
@@ -105,7 +105,7 @@ void display()
     backpack->get_shader()->setFloat("uLight.cone_b", glm::cos(glm::radians(15.0f)));
 
     backpack->render();
-    
+
     glutSwapBuffers();
 }
 
@@ -121,22 +121,28 @@ void keyboard(unsigned char key, int xmouse, int ymouse)
 
     auto cam_links = glm::normalize(glm::cross(cam_oben, cam_front));
 
-    if (key == 'w') cam_pos += delta_value * cam_front * 5.0f;
-    if (key == 's') cam_pos -= delta_value * cam_front * 5.0f;
-    if (key == 'a') cam_pos += delta_value * cam_links * 5.0f;
-    if (key == 'd') cam_pos -= delta_value * cam_links * 5.0f;
+    if (key == 'w')
+        cam_pos += delta_value * cam_front * 5.0f;
+    if (key == 's')
+        cam_pos -= delta_value * cam_front * 5.0f;
+    if (key == 'a')
+        cam_pos += delta_value * cam_links * 5.0f;
+    if (key == 'd')
+        cam_pos -= delta_value * cam_links * 5.0f;
 }
 
 void mouse(int button, int state, int xpos, int ypos)
 {
-    if (button == GLUT_RIGHT_BUTTON and state == GLUT_DOWN) {
-        
+    if (button == GLUT_RIGHT_BUTTON and state == GLUT_DOWN)
+    {
+
         last_mouse_x = xpos;
         last_mouse_y = ypos;
 
         drags = true;
-
-    } else if (button == GLUT_RIGHT_BUTTON and state == GLUT_UP) {
+    }
+    else if (button == GLUT_RIGHT_BUTTON and state == GLUT_UP)
+    {
 
         drags = false;
     }
@@ -144,7 +150,8 @@ void mouse(int button, int state, int xpos, int ypos)
 
 void motion(int xpos, int ypos)
 {
-    if (!drags) return;
+    if (!drags)
+        return;
 
     float xoffset = xpos - last_mouse_x;
     float yoffset = last_mouse_y - ypos;

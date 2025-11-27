@@ -68,7 +68,7 @@ void init()
     vector<float> cube_data;
     cube_data.assign(cube_vertices, cube_vertices + 288);
 
-    vector<pair<string, size_t> > cube_attr_sizes;
+    vector<pair<string, size_t>> cube_attr_sizes;
 
     cube_attr_sizes.push_back(make_pair("aPos", 3));
     cube_attr_sizes.push_back(make_pair("aNormal", 3));
@@ -104,7 +104,7 @@ void init()
     vector<float> skybox_data;
     skybox_data.assign(skybox_vertices, skybox_vertices + 108);
 
-    vector<pair<string, size_t> > skybox_attr_sizes;
+    vector<pair<string, size_t>> skybox_attr_sizes;
 
     skybox_attr_sizes.push_back(make_pair("aPos", 3));
 
@@ -121,7 +121,7 @@ void init()
     vector<float> screen_data;
     screen_data.assign(screen_vertices, screen_vertices + 12);
 
-    vector<pair<string, size_t> > screen_attr_sizes;
+    vector<pair<string, size_t>> screen_attr_sizes;
 
     screen_attr_sizes.push_back(make_pair("aPos", 2));
 
@@ -231,22 +231,28 @@ void keyboard(unsigned char key, int xmouse, int ymouse)
 
     auto cam_links = glm::normalize(glm::cross(cam_oben, cam_front));
 
-    if (key == 'w') cam_pos += delta_value * cam_front * 2.0f;
-    if (key == 's') cam_pos -= delta_value * cam_front * 2.0f;
-    if (key == 'a') cam_pos += delta_value * cam_links * 2.0f;
-    if (key == 'd') cam_pos -= delta_value * cam_links * 2.0f;
+    if (key == 'w')
+        cam_pos += delta_value * cam_front * 2.0f;
+    if (key == 's')
+        cam_pos -= delta_value * cam_front * 2.0f;
+    if (key == 'a')
+        cam_pos += delta_value * cam_links * 2.0f;
+    if (key == 'd')
+        cam_pos -= delta_value * cam_links * 2.0f;
 }
 
 void mouse(int button, int state, int xpos, int ypos)
 {
-    if (button == GLUT_RIGHT_BUTTON and state == GLUT_DOWN) {
-        
+    if (button == GLUT_RIGHT_BUTTON and state == GLUT_DOWN)
+    {
+
         last_mouse_x = xpos;
         last_mouse_y = ypos;
 
         drags = true;
-
-    } else if (button == GLUT_RIGHT_BUTTON and state == GLUT_UP) {
+    }
+    else if (button == GLUT_RIGHT_BUTTON and state == GLUT_UP)
+    {
 
         drags = false;
     }
@@ -254,7 +260,8 @@ void mouse(int button, int state, int xpos, int ypos)
 
 void motion(int xpos, int ypos)
 {
-    if (!drags) return;
+    if (!drags)
+        return;
 
     float xoffset = xpos - last_mouse_x;
     float yoffset = last_mouse_y - ypos;
